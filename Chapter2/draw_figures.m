@@ -78,7 +78,7 @@ obs={[-6,1;-4.2,.6;-2.3,1.7;-2.7,4.4;-5.3,5.6;-6.8,3.7], ...
 r=.65;seed=[-.4,.15];bounds=[-7.5,7.5,-5.5,7];[b,h]=grow_corridor(seed,obs,r,bounds,.24);
 f=figure('Color','w','Position',[50,50,1170,435],'Visible','off');
 for panel=1:3
- ax=axes(f,'Position',[.015+(panel-1)*.333,.13,.318,.84]);hold(ax,'on');axis(ax,'equal');axis(ax,bounds);axis(ax,'off');scene(ax,obs,r);
+ ax=axes(f,'Position',[.015+(panel-1)*.333,.13,.318,.84]);hold(ax,'on');axis(ax,'equal');axis(ax,[-7.5,7.5,-7,8]);axis(ax,'off');scene(ax,obs,r);
  if panel>=2
   if panel==2
    acc=h(h(:,2)==1,3:6);last=size(acc,1);for j=unique([3,round(last/3),round(2*last/3)]),box(ax,acc(j,:),[.62,.73,.82],.8,'-');end
@@ -89,10 +89,10 @@ for panel=1:3
   rejected=h(h(:,2)==0,3:6);for j=1:size(rejected,1),box(ax,rejected(j,:),[.78,.35,.24],.85,'--');end
  elseif panel==3
   line2(ax,[b(1);seed(2)],[b(2);seed(2)],blue,.6,':');line2(ax,[seed(1);b(3)],[seed(1);b(4)],blue,.6,':');
-  label(ax,[mean(b(1:2));b(4)+.45],'Upper bound',20);label(ax,[mean(b(1:2));b(3)-.5],'Lower bound',20);
+
  end
  plot(ax,seed(1),seed(2),'ko','MarkerFaceColor','w','MarkerSize',5,'LineWidth',1);
- names={'(a) Disc-radius inflation','(b) Cyclic box expansion','(c) Accepted corridor'};label(ax,[0;-5.15],names{panel},23);
+ names={'(a) Disc-radius inflation','(b) Cyclic box expansion','(c) Accepted corridor'};label(ax,[0;-6.25],names{panel},23);
 end
 export(f,out,'fig02-05');
 % 2.6: white corridor interiors versus omitted free space in the same map.
