@@ -62,13 +62,13 @@ export(f,out,'fig02-03');
 f=figure('Color','w','Position',[50,50,1000,395],'Visible','off');
 P=[0,0;2.4,0;3.1,1.8;1.4,3;-.6,1.7];
 for panel=1:2
- ax=axes(f,'Position',[.035+(panel-1)*.5,.12,.43,.82]);hold(ax,'on');axis(ax,'equal');axis(ax,[-2.8,3.8,-.8,3.8]);axis(ax,'off');
+ ax=axes(f,'Position',[.035+(panel-1)*.5,.12,.43,.82]);hold(ax,'on');axis(ax,'equal');axis(ax,[-2.8,3.8,-1.1,3.8]);axis(ax,'off');
  if panel==1
   p=[1.1,1.3];name='(a) Point inside';
  else,p=[-2.1,.4];name='(b) Point outside';end
  patch(ax,P(:,1),P(:,2),[.91,.94,.96],'EdgeColor',blue,'LineWidth',1.3);
  for j=1:size(P,1),line2(ax,p',P(j,:)',[.45,.45,.45],.8,'--');label(ax,P(j,:)'+.25*(P(j,:)'-[1.1;1.3]),sprintf('Q_%d',j),18);end
- plot(ax,p(1),p(2),'k.','MarkerSize',16);label(ax,p'+[0;-.32],'p',19);label(ax,[.45;-.65],name,20);
+ plot(ax,p(1),p(2),'k.','MarkerSize',16);label(ax,p'+[0;-.32],'p',19);label(ax,[.45;-.85],name,18);
 end
 export(f,out,'fig02-04');
 % 2.5: actual radius inflation, followed by accepted/rejected full-strip tests.
@@ -89,10 +89,10 @@ for panel=1:3
   rejected=h(h(:,2)==0,3:6);for j=1:size(rejected,1),box(ax,rejected(j,:),[.78,.35,.24],.85,'--');end
  elseif panel==3
   line2(ax,[b(1);seed(2)],[b(2);seed(2)],blue,.6,':');line2(ax,[seed(1);b(3)],[seed(1);b(4)],blue,.6,':');
-  label(ax,[mean(b(1:2));b(4)+.45],'Upper bound',14);label(ax,[mean(b(1:2));b(3)-.5],'Lower bound',14);
+  label(ax,[mean(b(1:2));b(4)+.45],'Upper bound',20);label(ax,[mean(b(1:2));b(3)-.5],'Lower bound',20);
  end
  plot(ax,seed(1),seed(2),'ko','MarkerFaceColor','w','MarkerSize',5,'LineWidth',1);
- names={'(a) Disc-radius inflation','(b) Cyclic box expansion','(c) Accepted corridor'};label(ax,[0;-5.15],names{panel},18);
+ names={'(a) Disc-radius inflation','(b) Cyclic box expansion','(c) Accepted corridor'};label(ax,[0;-5.15],names{panel},23);
 end
 export(f,out,'fig02-05');
 % 2.6: white corridor interiors versus omitted free space in the same map.
@@ -102,7 +102,7 @@ for k=1:size(seeds,1)
  [bb,~]=grow_corridor(seeds(k,:),obs,r,bounds,.12);records(k,:)=bb; %#ok<AGROW>
  V=[bb(1),bb(3);bb(2),bb(3);bb(2),bb(4);bb(1),bb(4)];patch(ax,V(:,1),V(:,2),[.92,.96,1],'FaceAlpha',.4,'EdgeColor',blue,'LineWidth',1.1);
 end
-plot(ax,seeds(:,1),seeds(:,2),'k--o','MarkerFaceColor','w','LineWidth',1);label(ax,[0;-5.05],'Corridor sections constrain the disc center',18);
+plot(ax,seeds(:,1),seeds(:,2),'k--o','MarkerFaceColor','w','LineWidth',1);
 export(f,out,'fig02-06');
 % 2.8: candidate axes and a continuous separating plane for convex sets.
 f=figure('Color','w','Position',[50,50,1020,410],'Visible','off');P=[-3,-1;-1,-1;-.4,.8;-2.5,1.5];Q=[1,.3;2.8,-.2;3.1,1.7;1.4,2.3];
@@ -114,12 +114,12 @@ for panel=1:2
   arrow(ax,[-3.4;-1.55],[3.3;-1.55],[.25,.25,.25],.9);
   for x=[min(P(:,1)),max(P(:,1)),min(Q(:,1)),max(Q(:,1))],line2(ax,[x;-.5],[x;-1.55],[.6,.6,.6],.65,':');end
   line2(ax,[min(P(:,1));-1.55],[max(P(:,1));-1.55],blue,4,'-');line2(ax,[min(Q(:,1));-1.55],[max(Q(:,1));-1.55],gold,4,'-');
-  label(ax,[.3;-1.85],'gap',17);label(ax,[0;-2.2],'(a) Projection onto a candidate axis',19);
+  label(ax,[.3;-1.85],'gap',17);label(ax,[0;-2.2],'(a) Projection intervals',20);
  else
   beta=.3;line2(ax,[beta;-1.6],[beta;2.6],[.25,.25,.25],1.3,'-');
   line2(ax,[-.4;-1.6],[-.4;2.6],blue,.8,'--');line2(ax,[1;-1.6],[1;2.6],gold,.8,'--');
   arrow(ax,[beta;2.45],[1.65;2.45],[.25,.25,.25],1);label(ax,[1.85;2.45],'n',19);
-  dim(ax,[-.4;-1.3],[1;-1.3]);label(ax,[.3;-1.65],'d_{safe}',17);label(ax,[0;-2.2],'(b) A separating line and its margin',19);
+  dim(ax,[-.4;-1.3],[1;-1.3]);label(ax,[.3;-1.65],'d_{safe}',17);label(ax,[0;-2.2],'(b) Separating line and margin',20);
  end
 end
 export(f,out,'fig02-08');
