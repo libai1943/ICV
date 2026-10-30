@@ -79,7 +79,7 @@ for panel=1:2
   for j=1:count,label(ax,T([centers(j);-1.65]),sprintf('c_i^{(%d)}',j),21);end
   c=T([centers(2);0]);dim(ax,c,c+R*[0;r]);label(ax,c+R*[.45;r*.75],'r_i^{(3)}',21);
  end
- names={'(a) Single-disc cover','(b) Three-disc cover'};label(ax,[1.5;-2.9],names{panel},22);
+ names={'(a) Single-disc cover','(b) Three-disc cover'};label(ax,[1.5;-2.9],names{panel},18);
 end
 export(f,out,'fig02-03');
 % 2.4: point-area criterion and its limitation, shown without raster labels.
@@ -92,7 +92,7 @@ for panel=1:2
  else,p=[-2.1,.4];name='(b) Point outside';end
  patch(ax,P(:,1),P(:,2),[.91,.94,.96],'EdgeColor',blue,'LineWidth',1.3);
  for j=1:size(P,1),line2(ax,p',P(j,:)',[.45,.45,.45],.8,'--');label(ax,P(j,:)'+.25*(P(j,:)'-[1.1;1.3]),sprintf('Q_%d',j),18);end
- plot(ax,p(1),p(2),'k.','MarkerSize',16);label(ax,p'+[0;-.32],'p',19);label(ax,[.45;-.85],name,22);
+ plot(ax,p(1),p(2),'k.','MarkerSize',16);label(ax,p'+[0;-.32],'p',19);label(ax,[.45;-.85],name,17);
 end
 export(f,out,'fig02-04');
 % 2.5: actual radius inflation, followed by accepted/rejected full-strip tests.

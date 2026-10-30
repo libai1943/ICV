@@ -44,7 +44,7 @@ for panel=1:2
   plot(ax,squeeze(a.state(1,:,i))-offset,squeeze(a.state(2,:,i)),'--','Color',colors(i,:),'LineWidth',1.3);
   q=a.state(:,kstar,i);q(1)=q(1)-offset;BookDrawVehicle(ax,q,g,colors(i,:),i,14);
  end
- names={'(a) Conflict before longitudinal translation','(b) Same maneuver shapes after translation'};text(ax,.5,-.28,names{panel},'Units','normalized','HorizontalAlignment','center','FontSize',22);ylabel(ax,'y (m)');
+ names={'(a) Conflict before longitudinal translation','(b) Same maneuver shapes after translation'};text(ax,.5,-.28,names{panel},'Units','normalized','HorizontalAlignment','center','FontSize',17.5);ylabel(ax,'y (m)');
 end
 savefigs(f,out,'fig04-03');
 % 4.4: actual priority construction, original and translated formation.
@@ -53,7 +53,7 @@ f=figure('Color','w','Position',[50,50,1050,550],'Visible','off');
 for panel=1:2
  ax=axes(f,'Position',[.06,.57-(panel-1)*.42,.91,.32]);hold(ax,'on');road(ax,xl,p);a=frames{panel};
  for i=1:p.N,BookDrawVehicle(ax,a.state(:,1,i),g,colors(i,:),i,13);end
- names={'(a) Initial lane-change formation','(b) Sparse formation obtained by backward translations'};text(ax,.5,-.30,names{panel},'Units','normalized','HorizontalAlignment','center','FontSize',22);ylabel(ax,'y (m)');
+ names={'(a) Initial lane-change formation','(b) Sparse formation obtained by backward translations'};text(ax,.5,-.30,names{panel},'Units','normalized','HorizontalAlignment','center','FontSize',21);ylabel(ax,'y (m)');
 end
 annotation(f,'textbox',[.07,.01,.9,.06],'String',['Priority order: ',strjoin(arrayfun(@num2str,priority','UniformOutput',false),' > ')],'EdgeColor','none','FontName','Times New Roman','FontSize',16,'HorizontalAlignment','center');savefigs(f,out,'fig04-04');
 % 4.5: stages and lane-change intermediate motion, in one moving frame.
@@ -71,7 +71,7 @@ for panel=1:6
   end
   q=book.state(:,k,i);q(1)=q(1)-p.v0*book.time(k);BookDrawVehicle(ax,q,g,colors(i,:),i,11);
  end
- text(ax,.5,-.40,sprintf('(%c) %s, t = %.2f s',96+panel,st,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',22);ylabel(ax,'y (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xl(1)/20)*20:20:floor(xl(2)/20)*20);set(ax,'FontSize',12);
+ text(ax,.5,-.40,sprintf('(%c) %s, t = %.2f s',96+panel,st,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',14.5);ylabel(ax,'y (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xl(1)/20)*20:20:floor(xl(2)/20)*20);set(ax,'FontSize',12);
 end
 savefigs(f,out,'fig04-05');
 % 4.6: state/control histories including the acceleration derivative.
@@ -109,7 +109,7 @@ for panel=1:2
   if panel==1,y=squeeze(b.control(1,k,id));lab='a (m/s^2)';else,y=squeeze(b.state(4,k,id));lab='v (m/s)';end
   plot(ax,b.time(k),y,style,'Color',col,'LineWidth',1.6);plot(ax,b.time(k(end)),y(end),'o','Color',col,'HandleVisibility','off');
  end
- xlabel(ax,'t (s)');ylabel(ax,lab);grid(ax,'on');box(ax,'off');set(ax,'FontName','Times New Roman','FontSize',15);text(ax,.5,-.24,sprintf('(%c) %s',96+panel,choosecaption(panel)),'Units','normalized','HorizontalAlignment','center','FontSize',22);
+ xlabel(ax,'t (s)');ylabel(ax,lab);grid(ax,'on');box(ax,'off');set(ax,'FontName','Times New Roman','FontSize',15);text(ax,.5,-.24,sprintf('(%c) %s',96+panel,choosecaption(panel)),'Units','normalized','HorizontalAlignment','center','FontSize',20.5);
  legend(ax,{'jerk limit: 0.2 m/s^3','jerk limit: 0.1 m/s^3'},'Location','best','FontSize',13,'Box','off');
 end
 savefigs(f,out,'fig04-07');
