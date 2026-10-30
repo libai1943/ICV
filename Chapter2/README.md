@@ -20,7 +20,7 @@ The command creates `output`, runs geometric and mathematical checks, integrates
 - `rounded_offset`: vector drawing boundary of a convex polygon plus a disc. Corner arcs are sampled only for plotting. They are not used to decide clearance.
 - `grow_corridor`: cyclic axis-aligned box growth. Every candidate box is checked against each original polygon with exact polygon distance and the specified disc-inflation radius. The algorithm is order-dependent and does not claim a maximum-area box.
 - `collision_examples`: independently checks the crossing-rectangle counterexample, an exact distance, an OBCA dual witness, a separating-line witness, and the conservative half-space inequality.
-- `vehicle_model_demo`: integrates state `[x;y;theta;v;phi;a]` with inputs `[JERK;omega]`; writes `bicycle_trajectory.csv`. No states are clipped.
+- `vehicle_model_demo`: integrates state `[x;y;theta;v;phi;a]` with inputs `[jerk;omega]`; writes `bicycle_trajectory.csv`. No states are clipped.
 - `draw_figures`: rebuilds the dimensional diagrams, disc covers, triangle-area panels, rounded STC construction, corridor sequence, and separating-line diagram.
 
 Lengths are in meters, time in seconds, and angles in radians. The vehicle reference is always the rear-axle center. Geometric length/radius labels are upright; running indices and state symbols are italic. The three-disc cover divides the physical body into three longitudinal rectangles and circumscribes each; it covers every corner.
@@ -38,3 +38,7 @@ X. Zhang, A. Liniger, and F. Borrelli, *Optimization-Based Collision Avoidance*,
 S. Boyd and L. Vandenberghe, *Convex Optimization*, Cambridge University Press, 2004, Chapter 8. https://web.stanford.edu/~boyd/cvxbook/
 
 S. Gottschalk, M. C. Lin, and D. Manocha, *OBBTree: A Hierarchical Structure for Rapid Interference Detection*, SIGGRAPH, 1996.
+
+## Illustrated results (revision 2026-10-31)
+
+`run_examples` also exports the four-wheel bicycle construction, rotated instantaneous-center and disc-cover diagrams, numbered corridor trials, supporting-face dual certificate, and a six-state forward-simulation figure. All figures are vector PDFs with Times New Roman text. The CSV column name is `jerk_m_s3`; jerk is lowercase throughout.

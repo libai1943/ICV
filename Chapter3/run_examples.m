@@ -20,7 +20,7 @@ for i=1:numel(A)
  end
 end
 report.cbs=cbs;report.cbs.paths=paths;report.gradient=gradient_example(out);report.passed=true;
-draw_connectivity(out);fid=fopen(fullfile(out,'validation.json'),'w');fprintf(fid,'%s',jsonencode(report));fclose(fid);disp(report);
+draw_connectivity(out);report.illustrated=draw_search_examples(out);fid=fopen(fullfile(out,'validation.json'),'w');fprintf(fid,'%s',jsonencode(report));fclose(fid);disp(report);
 end
 
 function paths=shortPaths(start,goal)

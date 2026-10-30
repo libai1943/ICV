@@ -11,8 +11,8 @@ for panel=1:2
   plot(ax,q(1),q(2),'o','Color',col,'MarkerFaceColor',.78+.22*col,'MarkerSize',10,'LineWidth',1.2);
  end
  plot(ax,0,0,'o','MarkerFaceColor',[.3,.3,.3],'MarkerEdgeColor','k','MarkerSize',11);
- names={'(a) Four-connected','(b) Eight-connected'};text(ax,0,2.02,names{panel},'FontName','Times New Roman','FontSize',21,'HorizontalAlignment','center');
- notes={'Edge cost: 1',['Cardinal: 1; diagonal: ',char(8730),'2']};text(ax,0,-1.75,notes{panel},'FontName','Times New Roman','FontSize',18,'HorizontalAlignment','center','Interpreter','tex');
+ names={'(a) Four-connected','(b) Eight-connected'};text(ax,0,-2.02,names{panel},'FontName','Times New Roman','FontSize',22,'HorizontalAlignment','center');
+ notes={'Edge cost: 1',['Cardinal: 1; diagonal: ',char(8730),'2']};text(ax,0,1.92,notes{panel},'FontName','Times New Roman','FontSize',18,'HorizontalAlignment','center','Interpreter','tex');
 end
 exportgraphics(f,fullfile(out,'fig03-02.pdf'),'ContentType','vector');exportgraphics(f,fullfile(out,'fig03-02.png'),'Resolution',220);close(f);
 end

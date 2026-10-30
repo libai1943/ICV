@@ -1,0 +1,6 @@
+function colors = BookPalette()
+%BOOKPALETTE Retain the intersection source's vehicle color assignments.
+colors=[0.10,0.36,0.72;0.00,0.58,0.66;0.10,0.60,0.40;0.53,0.66,0.13; ...
+    0.91,0.65,0.08;0.94,0.38,0.12;0.78,0.17,0.26;0.64,0.21,0.56; ...
+    0.42,0.29,0.69;0.22,0.35,0.45];
+end
