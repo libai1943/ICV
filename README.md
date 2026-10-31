@@ -1,13 +1,17 @@
 # Cooperative Trajectory Planning for Intelligent Connected Vehicles
 
-MATLAB companion examples for the book. Each chapter is self-contained and has its own README.
+Companion to the book by Bai Li, Zhuyan Yin, Yongxiao Tian, Shengjie Lou, and Youmin Zhang.
 
-- [Chapter2](Chapter2): vehicle geometry, bicycle-model propagation, collision avoidance formulations, rounded obstacle inflation, and safe travel corridors.
-- [Chapter4](Chapter4): ten-ICV two-stage cooperative lane changes, three validated cases, and the complete color/vector plotting pipeline (MATLAB + CasADi).
-- [Chapter3](Chapter3): gradient-descent initial guesses, four/eight-connected A*, space-time A*, and conflict-based search.
+MATLAB companion code. Each chapter contains its own README, numerical checks, and figure generator.
 
-Open the desired chapter folder in MATLAB and run `run_examples`. The examples were executed with MATLAB R2021b. No third-party solver or additional toolbox is required for these two chapters. Generated results are written to the chapter's `output` directory.
+| Folder | Content | Main entry point |
+|---|---|---|
+| [Chapter2](Chapter2) | Vehicle geometry, collision avoidance, safe travel corridors | `run_examples` |
+| [Chapter3](Chapter3) | A*, space-time A*, conflict-based search, initial guesses | `run_examples` |
+| [Chapter4](Chapter4) | Two-stage ten-vehicle cooperative lane changes | `run_experiments` |
+| [Chapter5](Chapter5) | Intersection STCs/RSTCs, SFM proposals, LIOM, initializer study | `run_experiments` |
+| [Chapter6](Chapter6) | ASCO and three comparison methods on eight ten-vehicle tasks | `run_experiments` |
 
-These examples distinguish geometric checks, discretized search models, and continuous vehicle models. Consult the chapter README before interpreting a result.
+Chapters 2 and 3 use MATLAB without a third-party optimizer. Chapters 4–6 require the compatible CasADi MATLAB package described in their READMEs. Tested with MATLAB R2021b. All generated results stay in each chapter's `output` directory.
 
-For Chapter4, follow its README: configure CasADi, run `run_experiments`, then `make_figures`.
+Vehicle geometry, variable naming, trajectory CSV fields, colors, Times New Roman labeling, and triangle heading glyphs follow a common convention. Geometry illustrations, actual numerical experiments, and failed runs are distinguished explicitly. No hardware or ROS deployment is performed by these scripts.

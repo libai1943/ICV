@@ -1,0 +1,23 @@
+{
+  "status": "PASS",
+  "vertices_per_polygon": 7,
+  "strictly_convex": true,
+  "rotation_radians": 0.38,
+  "projection_gap_m": 3,
+  "witness_distance_m": 2.9999999999999996,
+  "unit_normal": [
+    0.9286646355765102,
+    0.3709204694129827
+  ],
+  "witnesses": [
+    [
+      -0.7988424712819663,
+      -0.6959530918647612
+    ],
+    [
+      1.9871514354475643,
+      0.4168083163741868
+    ]
+  ],
+  "dual_value_m": 3
+}

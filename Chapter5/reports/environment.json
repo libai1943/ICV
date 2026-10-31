@@ -1,0 +1,9 @@
+{
+  "date": "2026-10-31",
+  "matlab": "R2021b",
+  "casadi": "3.7.2",
+  "solver": "IPOPT/MUMPS",
+  "processor": "Intel Core i9-12900H",
+  "numerical_threads": 1,
+  "concurrency_note": "Chapter and comparator jobs were executed on the same machine with overlapping runs; timings are descriptive wall-clock measurements, not isolated-machine benchmark rankings."
+}

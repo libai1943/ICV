@@ -134,22 +134,35 @@ for k=1:size(seeds,1)
 end
 plot(ax,seeds(:,1),seeds(:,2),'k--o','MarkerFaceColor','w','LineWidth',1);
 export(f,out,'fig02-06');
-% 2.8: candidate axes and a continuous separating plane for convex sets.
-f=figure('Color','w','Position',[50,50,1020,410],'Visible','off');P=[-3,-1;-1,-1;-1,1;-3,1];Q=[1,0;3,0;3,2;1,2];
+% 2.8: irregular seven-sided convex sets in a general orientation.
+angle=.38;rotation=[cos(angle),-sin(angle);sin(angle),cos(angle)];
+P=[-3.5,-.9;-3.1,-1.7;-1.6,-1.5;-1,-.7;-1,.6;-2.1,1.3;-3.4,.8]*rotation';
+Q=([1,-.5;1.7,-1.3;3,-1;3.8,.1;3,1.5;1.7,1.6;1,.7]+[1,0])*rotation';
+normal=rotation(:,1);tangent=rotation(:,2);assert(abs(polygon_distance(P,Q)-3)<1e-9);
+f=figure('Color','w','Position',[50,50,1100,470],'Visible','off');
 for panel=1:2
- ax=axes(f,'Position',[.035+(panel-1)*.5,.10,.43,.87]);hold(ax,'on');axis(ax,'equal');axis(ax,[-3.8,3.8,-2.4,3]);axis(ax,'off');
+ ax=axes(f,'Position',[.025+(panel-1)*.5,.07,.45,.90]);hold(ax,'on');axis(ax,'equal');axis(ax,[-4.2,5.2,-4.7,3.8]);axis(ax,'off');
  patch(ax,P(:,1),P(:,2),[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.3);patch(ax,Q(:,1),Q(:,2),[.98,.92,.78],'EdgeColor',gold,'LineWidth',1.3);
- label(ax,[-1.9;0],'P',20);label(ax,[2;1],'Q',20);
+ label(ax,mean(P)', 'P',22);label(ax,mean(Q)','Q',22);
  if panel==1
-  arrow(ax,[-3.4;-1.55],[3.3;-1.55],[.25,.25,.25],.9);
-  for x=[min(P(:,1)),max(P(:,1)),min(Q(:,1)),max(Q(:,1))],line2(ax,[x;-.5],[x;-1.55],[.6,.6,.6],.65,':');end
-  line2(ax,[min(P(:,1));-1.55],[max(P(:,1));-1.55],blue,4,'-');line2(ax,[min(Q(:,1));-1.55],[max(Q(:,1));-1.55],gold,4,'-');
-  label(ax,[.3;-1.85],'gap',17);label(ax,[0;-2.2],'(a) Projection intervals',20);
+  baseline=-2.4*tangent;arrow(ax,baseline-4*normal,baseline+5*normal,[.25,.25,.25],.9);
+  for polygon={P,Q}
+   V=polygon{1};projection=V*normal;[low,first]=min(projection);[high,last]=max(projection);
+   col=blue;if mean(V(:,1))>0,col=gold;end
+   line2(ax,baseline+low*normal,baseline+high*normal,col,4,'-');
+   for vertex=[first,last],line2(ax,V(vertex,:)',baseline+projection(vertex)*normal,[.6,.6,.6],.65,':');end
+  end
+  label(ax,baseline+4.7*normal+[.1;.3],'n',19);
+  label(ax,[.4;-4.45],'(a) Projection intervals',19);
  else
-  beta=0;line2(ax,[beta;-1.6],[beta;2.6],[.25,.25,.25],1.3,'-');
-  line2(ax,[-1;-1.6],[-1;2.6],blue,.8,'--');line2(ax,[1;-1.6],[1;2.6],gold,.8,'--');
-  arrow(ax,[beta;2.45],[1.65;2.45],[.25,.25,.25],1);label(ax,[1.85;2.45],'n',19);
-  dim(ax,[-1;-1.3],[1;-1.3]);label(ax,[0;-1.65],'Projected gap',17);label(ax,[0;-2.2],'(b) Separating line and margin',20);
+  for value=[-1,.5,2]
+   style='--';color=[.5,.5,.5];width=.8;if value==.5,style='-';color=[.2,.2,.2];width=1.2;end
+   line2(ax,value*normal-2.5*tangent,value*normal+2.5*tangent,color,width,style);
+  end
+  arrow(ax,.5*normal+2.2*tangent,2*normal+2.2*tangent,[.2,.2,.2],1);
+  label(ax,2.25*normal+2.2*tangent,'n',19);
+  dim(ax,-normal-1.9*tangent,2*normal-1.9*tangent);
+  label(ax,[.4;-4.45],'(b) Separating line and margin',19);
  end
 end
 export(f,out,'fig02-08');
@@ -176,17 +189,20 @@ for panel=1:2
  names={'(a) Nominal feasible region','(b) Conservative half-space'};label(ax,[.95;-3.8],names{panel},22);
 end
 export(f,out,'fig02-07');
-% 2.9: active supporting faces and their opposing dual normals.
-[f,ax]=canvas(1000,450,[-3.2,6.2,-2.3,2.4]);
-patch(ax,[-2,0,0,-2],[-1,-1,1,1],[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.2);
-patch(ax,[3,5,5,3],[-1,-1,1,1],[.98,.92,.78],'EdgeColor',gold,'LineWidth',1.2);
-line2(ax,[0;-1],[0;1],blue,2.5,'-');line2(ax,[3;-1],[3;1],gold,2.5,'-');
-line2(ax,[1.5;-1.7],[1.5;1.7],[.35,.35,.35],1,'--');
-arrow(ax,[0;.45],[1;.45],blue,1.3);arrow(ax,[3;.45],[2;.45],gold,1.3);
-label(ax,[.6;.95],'A_P^T\lambda = (1,0)^T',19);label(ax,[3.1;1.5],'A_Q^T\mu = (-1,0)^T',19);
-label(ax,[-1;0],'P',23);label(ax,[4;0],'Q',23);
-plot(ax,[0,3],[-.3,-.3],'ko','MarkerFaceColor','k','MarkerSize',4);dim(ax,[0;-.3],[3;-.3]);label(ax,[1.5;-.7],'Distance = 3 m',20);
-label(ax,[1.5;-2],'Dual value = -b_P^T\lambda - b_Q^T\mu = 3 m',21);
+% 2.9: opposite active face normals certify the exact polygon distance.
+tangent=rotation(:,2);
+[f,ax]=canvas(1050,520,[-4.3,5.3,-3.2,3.8]);
+patch(ax,P(:,1),P(:,2),[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.2);
+patch(ax,Q(:,1),Q(:,2),[.98,.92,.78],'EdgeColor',gold,'LineWidth',1.2);
+line2(ax,P(4,:)',P(5,:)',blue,3,'-');line2(ax,Q(7,:)',Q(1,:)',gold,3,'-');
+line2(ax,.5*normal-2*tangent,.5*normal+2.6*tangent,[.35,.35,.35],1,'--');
+arrow(ax,-normal,0*normal,blue,1.3);arrow(ax,2*normal,normal,gold,1.3);
+label(ax,[-.8;3.3],'A_P^T\lambda = n',14);label(ax,[3.1;3.3],'A_Q^T\mu = -n',14);
+label(ax,mean(P)','P',16);label(ax,mean(Q)','Q',16);
+line2(ax,-normal-.35*tangent,2*normal-.35*tangent,[.3,.3,.3],.9,'-');
+plot(ax,[-normal(1),2*normal(1)]-.35*tangent(1),[-normal(2),2*normal(2)]-.35*tangent(2),'ko','MarkerFaceColor','k','MarkerSize',4);
+label(ax,[2.7;-1.4],'Distance = 3 m',14);
+label(ax,[.5;-2.65],'Dual value = -b_P^T\lambda - b_Q^T\mu = 3 m',14);
 export(f,out,'fig02-09');
 report=collision_examples();report.stc=struct('radius',r,'seed',seed,'box',b,'history',h,'corridors',records);
 report.figures={'fig02-01','fig02-02','fig02-03','fig02-04','fig02-05','fig02-06','fig02-07','fig02-08','fig02-09'};
