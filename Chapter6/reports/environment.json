@@ -1,9 +1,11 @@
 {
-  "date": "2026-10-31",
+  "date": "2026-11-01",
   "matlab": "R2021b",
   "casadi": "3.7.2",
-  "solver": "IPOPT/MUMPS",
+  "ipopt": "3.14.11",
+  "linear_solver": "MA57",
+  "discretization": "first-order explicit forward Euler",
   "processor": "Intel Core i9-12900H",
   "numerical_threads": 1,
-  "concurrency_note": "Chapter and comparator jobs were executed on the same machine with overlapping runs; timings are descriptive wall-clock measurements, not isolated-machine benchmark rankings."
+  "timing_note": "Single-run wall measurements on a shared host with overlapping chapter jobs; not isolated-machine rankings."
 }

@@ -49,7 +49,15 @@ while any(active)
  for side=[1,4,2,3]
   if ~active(side),continue;end
   candidate=box;candidate(side)=candidate(side)+step*(1-2*ismember(side,[1,3]));
-  if growth(side)+step<=limit && test(candidate),box=candidate;growth(side)=growth(side)+step;else,active(side)=false;end
+  if growth(side)+step<=limit && test(candidate)
+   box=candidate;growth(side)=growth(side)+step;
+  else
+   for fine=step./[2,4,8,16]
+    candidate=box;candidate(side)=candidate(side)+fine*(1-2*ismember(side,[1,3]));
+    if growth(side)+fine<=limit && test(candidate),box=candidate;growth(side)=growth(side)+fine;end
+   end
+   active(side)=false;
+  end
  end
 end
 box=box';

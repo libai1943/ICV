@@ -1,61 +1,61 @@
 function make_figures()
 root=fileparts(mfilename('fullpath'));addpath(fullfile(root,'common'));BookPlotStyle();out=fullfile(root,'output/figures');if ~isfolder(out),mkdir(out);end
-chosen=12;
-data=load(fullfile(root,sprintf('output/case_%02d.mat',chosen)));result=data.result;assert(result.success,'Only validated trajectories may be plotted as solutions.');scene=result.scene;states=result.trajectory;colors=[BookPalette();.45,.46,.2;.45,.25,.23];radius=hypot(scene.geometry.LW+scene.geometry.LF+scene.geometry.LR,scene.geometry.LB)/2;
-% 5.1: a computed close view of the active intersection.
-[f,ax]=panel(880,780);draw_map(ax,scene,[-32,32,-32,32]);k=1+round(.32*(scene.nodes-1));
-for car=1:chosen
- plot(ax,states(1,1:k,car),states(2,1:k,car),'-','Color',colors(car,:),'LineWidth',1.2);
- if all(abs(states(1:2,k,car))<30),BookDrawVehicle(ax,states(:,k,car),scene.geometry,colors(car,:),car,14);end
-end
-axis(ax,'off');save_plot(f,out,'fig05-01');
-% 5.2: radius inflation; circles create rounded offset boundaries.
-f=figure('Color','w','Position',[50,50,1050,530],'Visible','off');
+chosen=15;
+data=load(fullfile(root,sprintf('output/case_%02d.mat',chosen)));result=data.result;assert(result.success,'Only validated trajectories may be plotted as solutions.');scene=result.scene;states=result.trajectory;colors=repmat(BookPalette(),2,1);radius=hypot(scene.geometry.LW+scene.geometry.LF+scene.geometry.LR,scene.geometry.LB)/2;
+% 5.1 is a credited real photograph in the manuscript, not a simulation.
+% 5.2: exact Euclidean offset, with round vertex arcs and no artificial seams.
+f=figure('Color','w','Position',[50,50,1100,550],'Visible','off');
+P=[-7,3;-5,6;-1,5.3;1.3,3.5;-.5,1.5;-3,2.2];
 for side=1:2
- ax=axes(f,'Position',[.03+(side-1)*.5,.12,.45,.82]);hold(ax,'on');axis(ax,'equal');axis(ax,[-15,15,-15,15]);axis(ax,'off');
- for k=1:4
-  P=scene.obstacles{k};
-  if side==2
-   angles=linspace(0,2*pi,81);cloud=[];for vertex=1:size(P,1),cloud=[cloud;P(vertex,:)+(radius+scene.margin)*[cos(angles)',sin(angles)']];end
-   hull=convhull(cloud(:,1),cloud(:,2));patch(ax,cloud(hull,1),cloud(hull,2),[.87,.88,.89],'EdgeColor',[.7,.7,.7],'LineWidth',.6);
-  end
-  patch(ax,P(:,1),P(:,2),[.58,.60,.61],'EdgeColor',[.4,.4,.4]);
+ ax=axes(f,'Position',[.035+(side-1)*.5,.17,.43,.76]);hold(ax,'on');axis(ax,'equal');axis(ax,[-10,8,-7,9]);axis(ax,'off');
+ if side==2
+  grown=polybuffer(polyshape(P),radius+scene.margin,'JointType','round');
+  plot(ax,grown,'FaceColor',[.89,.88,.85],'FaceAlpha',1,'EdgeColor',[.58,.55,.48],'LineWidth',1.1);
  end
- pose=[-2.5;-2.9;0;0;0];center=pose(1:2)+(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2*[1;0];
- if side==1,BookDrawVehicle(ax,pose,scene.geometry,colors(1,:),[],16);circle(ax,center,radius,colors(1,:),1.2,'-');else,plot(ax,center(1),center(2),'ko','MarkerFaceColor','k');end
- names={'(a) Vehicle and physical boundary','(b) Center and inflated boundary'};text(ax,0,-17,names{side},'FontSize',18,'HorizontalAlignment','center');
+ patch(ax,P(:,1),P(:,2),[.65,.66,.67],'EdgeColor',[.35,.36,.37],'LineWidth',1);
+ pose=[-.5;-3;.45;0;0];c=pose(1:2)+(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2*[cos(pose(3));sin(pose(3))];
+ if side==1,BookDrawVehicle(ax,pose,scene.geometry,colors(1,:),[],16);circle(ax,c,radius,colors(1,:),1.25,'-');end
+ plot(ax,c(1),c(2),'ko','MarkerFaceColor','k','MarkerSize',4);
+ text(ax,c(1)-.9,c(2)+.6,'{\it c_i}','FontSize',19);text(ax,-3,4,'Obstacle','FontSize',17,'HorizontalAlignment','center');
+ if side==1
+  plot(ax,c(1)+[0,radius*cos(-.8)],c(2)+[0,radius*sin(-.8)],'k-','LineWidth',1.1);text(ax,c(1)+2,c(2)-2,'r_i','FontSize',19);
+ else
+  quiver(ax,-5.3,5.4,-1.5,1.8,0,'Color',[.35,.35,.35],'LineWidth',1,'MaxHeadSize',.22);text(ax,-3,8,'r_i + d_{safe}','FontSize',18,'HorizontalAlignment','center');
+ end
+ names={'(a) Enclosing disc','(b) Inflated obstacle'};text(ax,-1,-8.1,names{side},'FontSize',18,'HorizontalAlignment','center');
 end
 save_plot(f,out,'fig05-02');
-% 5.3: an actual relative corridor, using the same verified vehicle pair.
-centers=states(1:2,:,:)+(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2*cat(1,cos(states(3,:,:)),sin(states(3,:,:)));
-best=inf;pair=[1,2];instant=1;
-for i=1:chosen-1,for j=i+1:chosen,[distance,k]=min(vecnorm(centers(:,:,i)-centers(:,:,j)));if distance<best,best=distance;pair=[i,j];instant=k;end,end,end
-boxes=construct_corridors(scene,states);index=find(all(boxes.pairs==pair,2));delta=centers(:,:,pair(1))-centers(:,:,pair(2));seed=delta(:,instant);
-if isempty(index),relativeBox=[seed(1)-.1;seed(1)+.1;seed(2)-.1;seed(2)+.1];else,relativeBox=boxes.relative(:,instant,index);end
-f=figure('Color','w','Position',[50,50,1100,580],'Visible','off');
-ax=axes(f,'Position',[.03,.14,.44,.82]);hold(ax,'on');axis(ax,'equal');mid=mean(centers(:,instant,pair),3);
-for id=pair
- BookDrawVehicle(ax,states(:,instant,id),scene.geometry,colors(id,:),id,16);circle(ax,centers(:,instant,id),radius,colors(id,:),1.1,'-');plot(ax,centers(1,instant,id),centers(2,instant,id),'k.');
+% 5.3: one coordinate transformation, shown with matching scales and symbols.
+f=figure('Color','w','Position',[50,50,1100,565],'Visible','off');
+ax=axes(f,'Position',[.035,.17,.43,.76]);hold(ax,'on');axis(ax,'equal');axis(ax,[-10,11,-8,11]);axis(ax,'off');
+cent=[3,-3;2,-2];angles=[.55,2.65];offset=(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2;
+for j=1:2
+ pose=[cent(:,j)-offset*[cos(angles(j));sin(angles(j))];angles(j);0;0];BookDrawVehicle(ax,pose,scene.geometry,colors(j*3,:),[],16);
+ circle(ax,cent(:,j),radius,colors(j*3,:),1.2,'-');plot(ax,cent(1,j),cent(2,j),'k.','MarkerSize',12);
 end
-a=centers(:,instant,pair(2));b=centers(:,instant,pair(1));quiver(ax,a(1),a(2),b(1)-a(1),b(2)-a(2),0,'Color',[.2,.2,.2],'LineWidth',1);
-text(ax,mid(1)+.3,mid(2)+.5,'d_{ij}','FontSize',19);axis(ax,[mid(1)-12,mid(1)+12,mid(2)-12,mid(2)+12]);axis(ax,'off');text(ax,mid(1),mid(2)-13.8,'(a) Absolute vehicle geometry','FontSize',19,'HorizontalAlignment','center');
-ax=axes(f,'Position',[.53,.14,.44,.82]);hold(ax,'on');axis(ax,'equal');angles=linspace(0,2*pi,181);limit=2*radius+scene.margin;
-patch(ax,limit*cos(angles),limit*sin(angles),[.83,.84,.85],'EdgeColor',[.45,.45,.45]);
-patch(ax,relativeBox([1,2,2,1]),relativeBox([3,3,4,4]),[.88,.93,.98],'FaceAlpha',.7,'EdgeColor',colors(1,:),'LineWidth',1.3);
-window=max(1,instant-12):min(scene.nodes,instant+12);plot(ax,delta(1,window),delta(2,window),'--','Color',colors(1,:),'LineWidth',1.1);plot(ax,seed(1),seed(2),'ko','MarkerFaceColor','w','MarkerSize',6);
-quiver(ax,0,0,seed(1),seed(2),0,'Color',[.3,.3,.3],'LineWidth',.9);text(ax,.2,.5,'0','FontSize',18);text(ax,seed(1)+.6,seed(2)+.4,'Seed','FontSize',18);
-plot(ax,[0,limit],[0,0],'k-');text(ax,limit/2,-.8,'r_i + r_j + d_{safe}','FontSize',16,'HorizontalAlignment','center');
-axis(ax,[-10,14,-7,17]);axis(ax,'off');text(ax,2,-8.8,'(b) Relative forbidden disc and box','FontSize',19,'HorizontalAlignment','center');
-save_plot(f,out,'fig05-03');
-% 5.4: SFM vector diagram with the established rectangular vehicle glyph.
-[f,ax]=panel(900,610);axis(ax,[-7,9,-5,6]);axis(ax,'off');pose=[0;0;.35;0;0];BookDrawVehicle(ax,pose,scene.geometry,colors(1,:),[],16);BookDrawVehicle(ax,[5;3;-.5;0;0],scene.geometry,colors(6,:),[],16);
-P=[-5,2;-4.5,3.8;-2.8,4.8;-1.7,4.2;-1.9,2.8;-3.3,2.1];patch(ax,P(:,1),P(:,2),[.75,.76,.77],'EdgeColor',[.4,.4,.4]);
-center=(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2*[cos(.35);sin(.35)];
-other=[5;3]+(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2*[cos(-.5);sin(-.5)];
-ends=P([2:end,1],:);edges=ends-P;fraction=max(0,min(1,sum((center'-P).*edges,2)./sum(edges.^2,2)));points=P+fraction.*edges;[~,nearest]=min(vecnorm(points-center',2,2));away=center-points(nearest,:)';
-repulsion=2.2*(center-other)/norm(center-other);boundary=2*away/norm(away);guidance=[3.2;2.1];vectors=[guidance,repulsion,boundary,guidance+repulsion+boundary];
-labels={'Guidance','Vehicle repulsion','Boundary repulsion','Resultant'};cols=[colors(3,:);colors(7,:);colors(2,:);.15,.15,.15];positions=[5.3,4.9;-2.2,-1.7;4.3,-1.7;6.4,.2];
-for k=1:4,v=vectors(:,k);quiver(ax,center(1),center(2),v(1),v(2),0,'Color',cols(k,:),'LineWidth',1.5,'MaxHeadSize',.25);text(ax,positions(k,1),positions(k,2),labels{k},'FontSize',18,'HorizontalAlignment','center','Color',cols(k,:));end
+quiver(ax,-3,-2,6,4,0,'Color',[.18,.18,.18],'LineWidth',1.3,'MaxHeadSize',.2);
+text(ax,-3,-5.5,'c_j','FontSize',19,'HorizontalAlignment','center');text(ax,3,5.3,'c_i','FontSize',19,'HorizontalAlignment','center');text(ax,-.8,1.7,'d_{ij}','FontSize',19);
+text(ax,.5,-9.2,'(a) Absolute coordinates','FontSize',18,'HorizontalAlignment','center');
+ax=axes(f,'Position',[.535,.17,.43,.76]);hold(ax,'on');axis(ax,'equal');axis(ax,[-8,13,-8,11]);axis(ax,'off');limit=2*radius+scene.margin;
+angle=linspace(0,2*pi,241);patch(ax,limit*cos(angle),limit*sin(angle),[.86,.85,.83],'EdgeColor',[.45,.44,.42],'LineWidth',1);
+patch(ax,[5.5,10,10,5.5],[1,1,7,7],[.88,.93,.95],'EdgeColor',colors(3,:),'LineWidth',1.4);
+plot(ax,[0,5.5],[0,1],'k:','LineWidth',.9);plot(ax,5.5,1,'ko','MarkerFaceColor','w','MarkerSize',5);
+quiver(ax,0,0,6,4,0,'Color',[.18,.18,.18],'LineWidth',1.3,'MaxHeadSize',.2);plot(ax,6,4,'ko','MarkerFaceColor','w','MarkerSize',6);
+text(ax,.1,-.9,'0','FontSize',18);text(ax,6.6,3.5,'Seed','FontSize',17);text(ax,7.1,8.2,'Relative corridor','FontSize',15,'HorizontalAlignment','center');
+plot(ax,[-limit,0],[0,0],'k-','LineWidth',.7);text(ax,-2.8,-1.8,'r_i + r_j + d_{safe}','FontSize',15,'HorizontalAlignment','center');
+text(ax,2.5,-9.2,'(b) Relative coordinates','FontSize',18,'HorizontalAlignment','center');save_plot(f,out,'fig05-03');
+% 5.4: directions follow explicitly drawn center/nearest-boundary geometry.
+[f,ax]=panel(1100,680);axis(ax,[-9,12,-6,9]);axis(ax,'off');
+P=[-8,3;-6,6;-3,6.7;-1,4.4;-2.8,2.8;-5.5,2.3];patch(ax,P(:,1),P(:,2),[.74,.75,.76],'EdgeColor',[.4,.4,.4],'LineWidth',1);
+ci=[0;0];cj=[6;3.5];theta=.25;otherTheta=-2.5;
+BookDrawVehicle(ax,[ci-offset*[cos(theta);sin(theta)];theta;0;0],scene.geometry,colors(2,:),[],16);
+BookDrawVehicle(ax,[cj-offset*[cos(otherTheta);sin(otherTheta)];otherTheta;0;0],scene.geometry,colors(7,:),[],16);
+ends=P([2:end,1],:);edges=ends-P;fraction=max(0,min(1,sum((ci'-P).*edges,2)./sum(edges.^2,2)));points=P+fraction.*edges;[~,nearest]=min(vecnorm(points-ci',2,2));foot=points(nearest,:)';
+plot(ax,[ci(1),cj(1)],[ci(2),cj(2)],'k:','LineWidth',.9);plot(ax,[ci(1),foot(1)],[ci(2),foot(2)],'k:','LineWidth',.9);plot(ax,foot(1),foot(2),'ks','MarkerSize',5,'MarkerFaceColor','w');
+guide=[4.1;2.2];repel=3*(ci-cj)/norm(ci-cj);wall=3*(ci-foot)/norm(ci-foot);vectors=[guide,repel,wall,guide+repel+wall];cols=[colors(4,:);colors(8,:);colors(1,:);.12,.12,.12];
+for j=1:4,v=vectors(:,j);quiver(ax,0,0,v(1),v(2),0,'Color',cols(j,:),'LineWidth',1.7,'MaxHeadSize',.22);end
+text(ax,4.1,1.5,'f_{guide}','FontSize',19,'Color',cols(1,:));text(ax,-5,-1.7,'f_{vehicle}','FontSize',19,'Color',cols(2,:));text(ax,2.1,-3.7,'f_{boundary}','FontSize',19,'Color',cols(3,:));text(ax,5.0,-1.6,'f_{total}','FontSize',19);
+text(ax,-5.3,4.5,'Boundary','FontSize',17,'HorizontalAlignment','center');text(ax,5.8,6.3,'Neighbor j','FontSize',17,'HorizontalAlignment','center');text(ax,-1.2,-.7,'c_i','FontSize',17);text(ax,foot(1)-.3,foot(2)+.6,'Nearest point','FontSize',16,'HorizontalAlignment','right');
 save_plot(f,out,'fig05-04');
 % 5.5: illustrative timing, explicitly not a measured throughput experiment.
 [f,ax]=panel(1050,460);axis(ax,'normal');axis(ax,[0,32,.3,3.7]);set(ax,'YTick',1:3,'YTickLabel',{'Batch 3','Batch 2','Batch 1'},'XTick',0:5:30);xlabel(ax,'Illustrative time');hold(ax,'on');
@@ -71,12 +71,12 @@ box(ax,'off');save_plot(f,out,'fig05-05');
 % 5.6: six snapshots from the computed solution.
 f=figure('Color','w','Position',[50,50,900,1230],'Visible','off');fractions=[0,.18,.32,.46,.65,1];
 for panelIndex=1:6
- ax=axes(f,'Position',[.025+mod(panelIndex-1,2)*.50,.72-floor((panelIndex-1)/2)*.33,.45,.26]);hold(ax,'on');draw_map(ax,scene,[-47,47,-47,47]);k=1+round(fractions(panelIndex)*(scene.nodes-1));
+ ax=axes(f,'Position',[.025+mod(panelIndex-1,2)*.50,.72-floor((panelIndex-1)/2)*.33,.45,.26]);hold(ax,'on');draw_map(ax,scene,[-73,73,-73,73]);k=1+round(fractions(panelIndex)*(scene.nodes-1));
  for car=1:chosen
-  plot(ax,states(1,1:k,car),states(2,1:k,car),'-','Color',colors(car,:),'LineWidth',.8);
-  BookDrawVehicle(ax,states(:,k,car),scene.geometry,colors(car,:),car,9);
+  plot(ax,states(1,1:k,car),states(2,1:k,car),'-','Color',colors(car,:),'LineWidth',1.1);
+  BookDrawVehicle(ax,states(:,k,car),scene.geometry,colors(car,:),car,5.5);
  end
- axis(ax,'off');text(ax,0,-54,sprintf('(%c) t = %.1f s',96+panelIndex,(k-1)*scene.horizon/(scene.nodes-1)),'FontSize',18,'HorizontalAlignment','center');
+ axis(ax,'off');text(ax,0,-82,sprintf('(%c) t = %.1f s',96+panelIndex,(k-1)*scene.horizon/(scene.nodes-1)),'FontSize',18,'HorizontalAlignment','center');
 end
 save_plot(f,out,'fig05-06');
 % 5.7: actual state/control profiles and independent clearance.
@@ -89,7 +89,7 @@ for index=1:4
 end
 save_plot(f,out,'fig05-07');
 % 5.8: actual maximum motion defects during each tested run.
-[f,ax]=panel(900,470);axis(ax,'normal');hold(ax,'on');for count=[4,8,12]
+[f,ax]=panel(900,470);axis(ax,'normal');hold(ax,'on');for count=[9,12,15]
  file=fullfile(root,sprintf('output/case_%02d.mat',count));if ~isfile(file),continue;end
  r=load(file);h=r.result.history;semilogy(ax,[h.iteration],[h.maximum_defect],'-o','LineWidth',1.4,'DisplayName',sprintf('%d ICVs',count));
 end

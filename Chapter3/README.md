@@ -2,7 +2,20 @@
 
 ## Run
 
-Tested with MATLAB R2021b, base MATLAB only:
+## Numerical environment
+
+The recorded runs use MATLAB R2021b, CasADi 3.7.2, IPOPT 3.14.11, and **MA57**. Every vehicle-motion transcription and initial-guess propagation uses **first-order explicit forward Euler**. No automatic linear-solver fallback is allowed.
+
+Install a compatible CasADi MATLAB package and obtain an HSL library containing MA57 under an appropriate license. The HSL library and any required runtime libraries must match MATLAB's architecture. Licensed binaries and Times New Roman font files are not distributed with this source.
+
+```matlab
+setenv('CASADI_MATLAB_PATH','/absolute/path/to/casadi-matlab-package');
+setenv('IPOPT_HSL_LIBRARY','/absolute/path/to/libcoinhsl');
+```
+
+Use the actual platform-specific filename, including its extension. On Windows, add the directory containing dependent HSL runtime DLLs to `PATH` before launching MATLAB. A missing or incompatible MA57 library is an error to resolve, not a reason to substitute another solver. Launch MATLAB with `-singleCompThread` and set `OMP_NUM_THREADS=1` and `MKL_NUM_THREADS=1` before launch for the recorded threading configuration. Timings are single-run wall measurements and may be affected by concurrent workloads.
+
+The graph searches require base MATLAB; the scalar optimization additionally requires the numerical environment above. Run:
 
 ```matlab
 cd Chapter3
@@ -13,7 +26,7 @@ The command writes `output/validation.json`, `gradient_results.csv`, and the vec
 
 ## Included implementations
 
-- `gradient_example`: the 12 initial guesses and stopping rule used in the chapter's nonconvex scalar example.
+- `gradient_example`: IPOPT/MA57 local solutions from the 12 initial guesses used in the chapter's nonconvex scalar example.
 - `astar_grid`: four- or eight-connected spatial A*. Coordinates are `[row,column]`, `true` cells are blocked. Cardinal moves cost 1 and diagonals cost sqrt(2). A diagonal is rejected if either incident cardinal cell is blocked. Manhattan and octile heuristics match the respective costs. Improved closed nodes may reopen.
 - `space_time_astar`: four-connected unit-duration moves plus waiting, minimizing arrival time within a finite horizon. `C.vertex` rows are `[row,column,time]`. `C.edge` rows are `[r0,c0,r1,c1,departureTime]`. Time starts at zero. An agent stays at its goal after arrival, so future goal constraints must also be satisfied.
 - `first_conflict`: earliest vertex or edge-swap conflict, with paths extended by staying at their goals.
@@ -26,7 +39,7 @@ For readability, open lists use arrays rather than a heap. This does not change 
 
 The sample spatial grid has A* costs 15 (four-connected) and 12.6568542495 (eight-connected), each matched against Dijkstra's algorithm. Other checks reject diagonal corner cutting, enforce a future goal restriction, detect a pure edge swap, and resolve a two-agent swap with CBS sum of costs 6. An independent exhaustive enumeration rules out every candidate pair with smaller cost for this small example.
 
-The 12 gradient-descent runs reproduce the book table. The outputs include terminal values and iteration counts, not only a plot.
+The 12 IPOPT/MA57 runs on the bounded interval [-8,8] reproduce the book table. First-order KKT conditions are checked, including one-sided conditions at a bound. The outputs include terminal values and iteration counts, not only a plot.
 
 ## Model boundary
 

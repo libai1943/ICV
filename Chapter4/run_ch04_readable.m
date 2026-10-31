@@ -5,7 +5,7 @@ if nargin<1,config=struct();end
 % Input generation, dimensions, bounds, priority ordering and translation step
 % follow libai1943/MultiCavLaneChange (9831df03d1f78ff913fc686ff8b9c49c480feacc).
 % All model equations are visible here. No .p function or AMPL is called.
-% The book's five-state model is transcribed with the trapezoidal rule.
+% The book's five-state model is transcribed with the forward_euler rule.
 % Rectangular-body separation is certified for the declared pose interpolant.
 root=fileparts(mfilename('fullpath')); oldPath=path;
 cleanup=onCleanup(@()path(oldPath)); %#ok<NASGU>
@@ -42,7 +42,7 @@ book.geometry=repmat(g,1,p.N);book.state_names={'x','y','theta','v','phi'};book.
 book.state_units={'m','m','rad','m/s','rad'};book.control_units={'m/s^2','rad/s'};book.reference_point='rear-axle center';
 book.stage1_duration=stage1.time(end);book.planning_seconds=toc(timer);book.task=task;book.parameters=p;
 book.source_commit='9831df03d1f78ff913fc686ff8b9c49c480feacc';
-book.implementation='Editable MATLAB/CasADi two-stage method; trapezoidal transcription, rectangle clearance screening, time plus quadratic control cost.';
+book.implementation='Editable MATLAB/CasADi two-stage method; forward_euler transcription, rectangle clearance screening, time plus quadratic control cost.';
 book.time_provenance='Native stage node times concatenated once at the common junction.';
 book.matlab_version=version;book.solver=struct('stage1',solver1,'stage2',solver2);
 book.translations=translations;book.validation=BookValidatePairs(book);
@@ -50,7 +50,7 @@ book.interpolation_validation=BookValidatePairs(BookRefinePose(book,20));
 book.interpolation_validation.refinement_factor=20;
 book.model_validation=validateModel(book,stage1,sparse,task,p,g);
 assert(book.interpolation_validation.linear_pose_interpolation_certified,'Book:Collision','Interpolated vehicle rectangles are not certified separated.');
-assert(book.model_validation.maximum_trapezoidal_rate_residual<1e-5,'Book:Kinematics','Discrete kinematic residual exceeds tolerance.');
+assert(book.model_validation.maximum_forward_euler_rate_residual<1e-5,'Book:Kinematics','Discrete kinematic residual exceeds tolerance.');
 assert(book.model_validation.maximum_boundary_error<1e-5,'Book:Boundary','Boundary conditions are not satisfied.');
 assert(book.model_validation.bounds_satisfied,'Book:Bounds','State or control bounds violated.');
 assert(book.model_validation.minimum_sampled_road_clearance>0,'Book:Road','Vehicle footprint leaves the road.');
@@ -85,7 +85,7 @@ dblend=(30*s.^2-60*s.^3+30*s.^4)/T0;
 for i=1:p.N
  iz=(i-1)*5+(1:5);iu=(i-1)*2+(1:2);z=Z(iz,:);u=U(iu,:);
  f=kinematics(z,u,g);
- op.subject_to(z(:,2:end)-z(:,1:end-1)==h/2*(f(:,1:end-1)+f(:,2:end)));
+ op.subject_to(z(:,2:end)-z(:,1:end-1)==h*f(:,1:end-1));
  op.subject_to(z(:,1)==[0;task(i,2);0;p.v0;0]);
  op.subject_to(z([2,3,4,5],end)==[task(i,3);0;p.v0;0]);
  op.subject_to(u(:,1)==0);op.subject_to(u(:,end)==0);
@@ -99,7 +99,7 @@ for i=1:p.N
    bound(op,p.road_lower+p.clearance,yc,p.road_upper-p.clearance);
   end
  end
- weights=[.5,ones(1,K-2),.5];
+ weights=[ones(1,K-1),0];
  cost=cost+h*(p.acceleration_weight*sum2(weights.*u(1,:).^2)+p.steering_rate_weight*sum2(weights.*u(2,:).^2));
  dy=task(i,3)-task(i,2);ydot=dy*dblend;theta=atan2(ydot,p.v0);v=hypot(p.v0,ydot);
  phi=atan(g.LW*gradient(theta,t)./v);a=gradient(v,t);omega=gradient(phi,t);
@@ -111,7 +111,7 @@ for i=1:p.N
  stage.state(:,:,i)=sol.value(Z((i-1)*5+(1:5),:));stage.state(1,:,i)=stage.state(1,:,i)+task(i,1);
  stage.control(:,:,i)=sol.value(U((i-1)*2+(1:2),:));
 end
-stats=sol.stats();info=struct('status',stats.return_status,'iterations',stats.iter_count,'cost',sol.value(cost),'transcription','trapezoidal');
+stats=sol.stats();info=struct('status',stats.return_status,'iterations',stats.iter_count,'cost',sol.value(cost),'transcription','forward_euler');
 end
 
 function f=kinematics(z,u,g)
@@ -144,15 +144,15 @@ bound(op,.5,T,120);op.subject_to(X(:,1)==task(:,1));
 op.subject_to(V(:,1)==p.v0);op.subject_to(V(:,end)==p.v0);op.subject_to(A(:,1)==0);op.subject_to(A(:,end)==0);
 bound(op,0,V,p.vmax);bound(op,-p.amax,A,p.amax);
 if isfinite(p.jerk_limit),bound(op,-p.jerk_limit,diff(A,1,2)/h,p.jerk_limit);end
-op.subject_to(X(:,2:end)-X(:,1:end-1)==h/2*(V(:,1:end-1)+V(:,2:end)));
-op.subject_to(V(:,2:end)-V(:,1:end-1)==h/2*(A(:,1:end-1)+A(:,2:end)));
+op.subject_to(X(:,2:end)-X(:,1:end-1)==h*V(:,1:end-1));
+op.subject_to(V(:,2:end)-V(:,1:end-1)==h*A(:,1:end-1));
 op.subject_to(X(2:end,end)-X(1,end)==target(2:end)-target(1));
 L=g.LW+g.LF+g.LR;
 for lane=1:p.lanes
  ids=find(task(:,2)==lane*p.lane_width);[~,ix]=sort(task(ids,1),'descend');ids=ids(ix);
  for j=2:numel(ids),op.subject_to(X(ids(j-1),:)-X(ids(j),:)>=L+p.clearance);end
 end
-weights=[.5,ones(1,K-2),.5];cost=T+p.acceleration_weight*h*sum1(sum2(A.^2.*repmat(weights,N,1)));op.minimize(cost);
+weights=[ones(1,K-1),0];cost=T+p.acceleration_weight*h*sum1(sum2(A.^2.*repmat(weights,N,1)));op.minimize(cost);
 delta=target-task(:,1);delta=delta-(min(delta)+max(delta))/2;
 T0=max(8,sqrt(max(abs(delta))*6/p.amax)*1.15);s=linspace(0,1,K);
 blend=10*s.^3-15*s.^4+6*s.^5;dblend=(30*s.^2-60*s.^3+30*s.^4)/T0;ddblend=(60*s-180*s.^2+120*s.^3)/T0^2;
@@ -160,11 +160,11 @@ op.set_initial(T,T0);op.set_initial(X,task(:,1)+p.v0*T0*s+delta*blend);op.set_in
 configureSolver(op);sol=op.solve();stage.time=linspace(0,sol.value(T),K);stage.state=zeros(5,K,N);stage.control=zeros(2,K,N);
 xx=sol.value(X);vv=sol.value(V);aa=sol.value(A);
 for i=1:N,stage.state(:,:,i)=[xx(i,:);repmat(task(i,2),1,K);zeros(1,K);vv(i,:);zeros(1,K)];stage.control(1,:,i)=aa(i,:);end
-stats=sol.stats();info=struct('status',stats.return_status,'iterations',stats.iter_count,'cost',sol.value(cost),'transcription','trapezoidal');
+stats=sol.stats();info=struct('status',stats.return_status,'iterations',stats.iter_count,'cost',sol.value(cost),'transcription','forward_euler');
 end
 
 function configureSolver(op)
-options=struct('expand',true,'print_time',false);options.ipopt=struct('print_level',0,'tol',1e-8,'constr_viol_tol',1e-8,'max_iter',1500,'linear_solver','mumps','sb','yes');op.solver('ipopt',options);
+options=struct('expand',true,'print_time',false);options.ipopt=struct('print_level',0,'tol',1e-8,'constr_viol_tol',1e-8,'max_iter',1500,'linear_solver','ma57','hsllib',getenv('IPOPT_HSL_LIBRARY'),'sb','yes');op.solver('ipopt',options);
 end
 
 function m=validateModel(book,s1,s2,task,p,g)
@@ -173,10 +173,10 @@ for stage={s1,s2}
  a=stage{1};h=diff(a.time);
  for i=1:p.N
   z=a.state(:,:,i);u=a.control(:,:,i);f=kinematics(z,u,g);
-  res=max(res,max(abs(diff(z,1,2)./h-.5*(f(:,1:end-1)+f(:,2:end))),[],'all'));
+  res=max(res,max(abs(diff(z,1,2)./h-f(:,1:end-1)),[],'all'));
  end
 end
-m.maximum_trapezoidal_rate_residual=res;
+m.maximum_forward_euler_rate_residual=res;
 m.maximum_jerk=0;
 for stage={s1,s2}
  aa=stage{1};jerk=diff(aa.control(1,:,:),1,2)./diff(aa.time);m.maximum_jerk=max(m.maximum_jerk,max(abs(jerk),[],'all'));
@@ -200,22 +200,18 @@ for i=1:p.N
  clearance=min(clearance,c);bound=min(bound,min(c(1:end-1),c(2:end))-.5*motion);
 end
 m.minimum_sampled_road_clearance=min(clearance);m.minimum_interval_road_clearance_bound=min(bound);
-% Independent RK4 integration with linearly interpolated controls; five
-% substeps per native interval. Report accumulated model drift explicitly.
+% Independent native-grid forward Euler propagation.
 maxPosition=0;maxHeading=0;
 for i=1:p.N
  z=book.state(:,1,i);
  for k=1:numel(book.time)-1
-  h=(book.time(k+1)-book.time(k))/5;u0=book.control(:,k,i);u1=book.control(:,k+1,i);
-  for sub=1:5
-   alpha=(sub-1)/5;ua=u0+alpha*(u1-u0);um=u0+(alpha+.1)*(u1-u0);ub=u0+(alpha+.2)*(u1-u0);
-   k1=kinematics(z,ua,g);k2=kinematics(z+h*k1/2,um,g);k3=kinematics(z+h*k2/2,um,g);k4=kinematics(z+h*k3,ub,g);z=z+h*(k1+2*k2+2*k3+k4)/6;
-  end
+  h=book.time(k+1)-book.time(k);z=z+h*kinematics(z,book.control(:,k,i),g);
   maxPosition=max(maxPosition,norm(z(1:2)-book.state(1:2,k+1,i)));maxHeading=max(maxHeading,abs(z(3)-book.state(3,k+1,i)));
  end
 end
 m.maximum_integrated_position_error=maxPosition;m.maximum_integrated_heading_error=maxHeading;
-m.integration_check='RK4 with five substeps per native interval and linearly interpolated acceleration and steering rate; discrepancies are measured against the transcribed node states.';
+m.integration_check='Native-grid explicit forward Euler with left-endpoint controls.';
+
 end
 
 function bound(op,lo,x,hi)

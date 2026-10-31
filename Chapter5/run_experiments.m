@@ -1,5 +1,5 @@
 function summary=run_experiments(sizes)
-if nargin<1,sizes=[4,8,12];end
+if nargin<1,sizes=[9,12,15];end
 setup_solver();root=fileparts(mfilename('fullpath'));out=fullfile(root,'output');if ~isfolder(out),mkdir(out);end;summary=struct([]);
 for count=sizes
  scene=make_scenario(count);sfm=simulate_sfm(scene);[reference,initialization]=prepare_reference(scene,sfm);save(fullfile(out,sprintf('reference_%02d.mat',count)),'scene','reference','sfm','initialization');

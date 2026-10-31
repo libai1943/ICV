@@ -9,7 +9,7 @@ cd Chapter2
 report = run_examples;
 ```
 
-The command creates `output`, runs geometric and mathematical checks, integrates a jerk-extended bicycle model, and exports vector PDF figures with PNG previews. Figure labels use Times New Roman; install this font for the same appearance. The font is not bundled.
+The command creates `output`, runs geometric and mathematical checks, advances a jerk-extended bicycle model with first-order explicit forward Euler, and exports vector PDF figures with PNG previews. Figure labels use Times New Roman; install this font for the same appearance. The font is not bundled.
 
 ## Files and mathematical scope
 
@@ -27,7 +27,7 @@ Lengths are in meters, time in seconds, and angles in radians. The vehicle refer
 
 ## Checks and outputs
 
-`output/validation.json` records the results. The polygon example has distance 3 m, and both its separating-line and OBCA certificates attain 3 m. A crossing pair has every vertex outside the other rectangle but still overlaps. The half-space identity is checked at 2,000 points. The bicycle demo checks the integrated steering and acceleration against their analytic expressions.
+`output/validation.json` records the results. The polygon example has distance 3 m, and both its separating-line and OBCA certificates attain 3 m. A crossing pair has every vertex outside the other rectangle but still overlaps. The half-space identity is checked at 2,000 points. The bicycle demo checks steering and acceleration against analytic expressions at 0.02 s and 0.01 s Euler steps. The error ratio is checked for first-order convergence. Analytic reference values are not substituted for the numerical states.
 
 The figures are explanatory geometry, not a trajectory-planner benchmark. Corridor checks are spatial. Time-node constraints alone are not continuous-time collision guarantees. The OBCA example verifies a certificate for fixed polygons; it does not claim to solve a complete OBCA trajectory NLP.
 

@@ -13,7 +13,7 @@ for iteration=1:6
   lb(1:6,1)=scene.start(:,car);ub(1:6,1)=scene.start(:,car);lb(1:6,end)=scene.goal(:,car);ub(1:6,end)=scene.goal(:,car);
   lb(7:8,end)=0;ub(7:8,end)=0;
   lower(indices)=lb(:);upper(indices)=ub(:);
-  residuals{end+1}=reshape(q(1:6,2:end)-rk_step(q(1:6,1:end-1),q(7:8,1:end-1),dt,scene.geometry.LW),6*(steps-1),1);
+  residuals{end+1}=reshape(q(1:6,2:end)-euler_step(q(1:6,1:end-1),q(7:8,1:end-1),dt,scene.geometry.LW),6*(steps-1),1);
   residuals{end+1}=reshape(q(9:10,:)-q(1:2,:)-offset*[cos(q(3,:));sin(q(3,:))],2*steps,1);
   normal=normal+.02*dt*(sumsqr(q(6,:))+sumsqr(q(8,:)))+.002*dt*sumsqr(q(7,:));
  end
@@ -25,7 +25,7 @@ for iteration=1:6
   lo=[lo;reshape([box(1,:);-inf(1,steps);box(3,:);-inf(1,steps)],[],1)];hi=[hi;reshape([inf(1,steps);box(2,:);inf(1,steps);box(4,:)],[],1)];
  end
  residual=vertcat(residuals{:});constraints=vertcat(linear{:});weight=10^(2*iteration);penalty=sumsqr(residual);slackPenalty=100*sum1(variables(total+1:end));
- options=struct('print_time',false);options.ipopt=struct('print_level',0,'sb','yes','max_iter',900,'max_cpu_time',90,'tol',1e-8,'acceptable_iter',0,'linear_solver','mumps','bound_relax_factor',0,'mu_strategy','adaptive');
+ options=struct('print_time',false);options.ipopt=struct('print_level',0,'sb','yes','max_iter',900,'max_cpu_time',90,'tol',1e-8,'acceptable_iter',0,'linear_solver','ma57','hsllib',getenv('IPOPT_HSL_LIBRARY'),'bound_relax_factor',0,'mu_strategy','adaptive');
  if iteration<6
   cost=penalty+slackPenalty+normal/weight;
   jac=jacobian(residual,variables);curvature=2*(jac'*jac)+hessian(normal,variables)/weight;

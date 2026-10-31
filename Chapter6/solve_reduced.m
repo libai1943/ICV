@@ -1,5 +1,5 @@
 function [candidate,info]=solve_reduced(task,reference,active,mode,budget)
-% Fresh six-state RK4 direct multiple shooting; IPOPT, open MUMPS solver.
+% Fresh six-state forward Euler direct multiple shooting; IPOPT with MA57.
 import casadi.*
 nodes=size(reference.state,2);count=size(reference.state,3);states=SX.sym('states',6,nodes*count);
 inputs=SX.sym('inputs',2,(nodes-1)*count);duration=SX.sym('duration');
@@ -7,8 +7,8 @@ step=duration/(nodes-1);equations={};inequalities={};objective=duration;
 stages=cell(1,count);midpoints=cell(1,count);
 for car=1:count
  q=states(:,(car-1)*nodes+(1:nodes));u=inputs(:,(car-1)*(nodes-1)+(1:nodes-1));stages{car}=q;middle=SX.zeros(6,nodes-1);
- equations{end+1}=reshape(q(:,2:end)-rk_step(q(:,1:end-1),u,step,task.geometry.LW),6*(nodes-1),1);
- middle=rk_step(q(:,1:end-1),u,step/2,task.geometry.LW);
+ equations{end+1}=reshape(q(:,2:end)-euler_step(q(:,1:end-1),u,step,task.geometry.LW),6*(nodes-1),1);
+ middle=euler_step(q(:,1:end-1),u,step/2,task.geometry.LW);
  midpoints{car}=middle;
  equations{end+1}=q(:,1)-[task.start(:,car);0;0;0];equations{end+1}=q(:,end)-[task.goal(:,car);0;0;0];
  objective=objective+.01*step*(sum1(q(6,1:end-1)'.^2)+sum1((q(4,1:end-1)'.*u(2,:)').^2));
@@ -35,7 +35,7 @@ lower=repmat([-20;-20;-100;-task.maxSpeed;-task.maxSteering;-task.maxAcceleratio
 upper=repmat([20;20;100;task.maxSpeed;task.maxSteering;task.maxAcceleration],nodes*count,1);
 lower=[lower;repmat([-task.maxJerk;-task.maxSteeringRate],(nodes-1)*count,1);5];
 upper=[upper;repmat([task.maxJerk;task.maxSteeringRate],(nodes-1)*count,1);75];
-options=struct('print_time',false);options.ipopt=struct('print_level',0,'sb','yes','max_iter',1500,'max_cpu_time',budget,'tol',1e-7,'acceptable_tol',1e-5,'acceptable_iter',8,'linear_solver','mumps','bound_relax_factor',0,'mu_strategy','adaptive');
+options=struct('print_time',false);options.ipopt=struct('print_level',0,'sb','yes','max_iter',1500,'max_cpu_time',budget,'tol',1e-7,'acceptable_tol',1e-5,'acceptable_iter',8,'ma57_pivot_order',2,'ma57_pre_alloc',3,'linear_solver','ma57','hsllib',getenv('IPOPT_HSL_LIBRARY'),'bound_relax_factor',0,'mu_strategy','adaptive');
 solver=nlpsol('trajectory','ipopt',struct('x',variables,'f',objective,'g',constraints),options);
 model=struct('solver',solver,'lower',lower,'upper',upper,'equations',numel(eq),'inequalities',numel(ineq),'nodes',nodes,'count',count,'start',task.start,'goal',task.goal,'linearized',strcmp(mode,'linearized'));
 [candidate,info]=execute(model,reference,active);

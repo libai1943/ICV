@@ -1,8 +1,8 @@
 function summary=run_experiments(caseNumbers,methods,nodes,budget)
 if nargin<1,caseNumbers=1:8;end
 if nargin<2,methods={'asco','full','progressive','linearized'};end
-if nargin<3,nodes=41;end
-if nargin<4,budget=360;end
+if nargin<3,nodes=81;end
+if nargin<4,budget=240;end
 setup_solver();root=fileparts(mfilename('fullpath'));out=fullfile(root,'output');if ~isfolder(out),mkdir(out);end
 summary=struct([]);
 for number=caseNumbers

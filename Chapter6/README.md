@@ -1,44 +1,51 @@
-# Chapter 6 — Cooperative maneuvers in cluttered environments
+# Chapter 6: Cooperative Maneuvers in Cluttered Environments
 
-Independent MATLAB reconstruction of adaptive-scaling constrained optimization (ASCO) and three comparison implementations. All methods share the same task data, six-state bicycle model, RK4 discretization, cost, initialization, and independent validator. No legacy AMPL, compiled optimizer, or Python solver is invoked.
+Independent MATLAB reconstruction of adaptive-scaling constrained optimization (ASCO) and three comparison implementations. All methods share task data, the six-state bicycle model, forward Euler transcription, cost, initialization, and independent validation.
 
-## Requirements and launch
+## Numerical environment
 
-Tested with MATLAB R2021b and CasADi 3.7.2, using IPOPT/MUMPS. Set `CASADI_MATLAB_PATH` to the extracted compatible MATLAB package containing `+casadi` (https://web.casadi.org/get/). No software is installed by these scripts.
+The recorded runs use MATLAB R2021b, CasADi 3.7.2, IPOPT 3.14.11, and **MA57**. Every vehicle-motion transcription and initial-guess propagation uses **first-order explicit forward Euler**. No automatic linear-solver fallback is allowed.
 
-For the reported configuration, launch MATLAB with `-singleCompThread`; set `OMP_NUM_THREADS=1` and `MKL_NUM_THREADS=1` before launch. Timings depend on hardware and concurrent workloads.
+Install a compatible CasADi MATLAB package and obtain an HSL library containing MA57 under an appropriate license. The HSL library and any required runtime libraries must match MATLAB's architecture. Licensed binaries and Times New Roman font files are not distributed with this source.
+
+```matlab
+setenv('CASADI_MATLAB_PATH','/absolute/path/to/casadi-matlab-package');
+setenv('IPOPT_HSL_LIBRARY','/absolute/path/to/libcoinhsl');
+```
+
+Use the actual platform-specific filename, including its extension. On Windows, add the directory containing dependent HSL runtime DLLs to `PATH` before launching MATLAB. A missing or incompatible MA57 library is an error to resolve, not a reason to substitute another solver. Launch MATLAB with `-singleCompThread` and set `OMP_NUM_THREADS=1` and `MKL_NUM_THREADS=1` before launch for the recorded threading configuration. Timings are single-run wall measurements and may be affected by concurrent workloads.
+
+## Reproduce
 
 ```matlab
 cd Chapter6
-self_test
+self_test;
 run_experiments(1:8, ...
-    {'asco','full','progressive','linearized'},41,360);
+    {'asco','full','progressive','linearized'},81,240);
 export_results;
 make_figures;
 ```
 
+MA57 uses its internal AMD ordering (`ma57_pivot_order=2`) with workspace allocation factor 3. The linear solver remains MA57 for every comparison.
+
 ## Cases and comparison protocol
 
-`cases/case_01.json` through `case_08.json` preserve the first eight A100 boundary/obstacle datasets from the author's RA-L archive. Each contains ten vehicles and five circular obstacles. The solver and descriptive variable names are newly implemented. The task data, not the old optimization routines, are reused.
+`cases/case_01.json` through `case_08.json` preserve the first eight A100 boundary/obstacle datasets from the author's RA-L archive: ten vehicles and five circular obstacles per case. Only task data are reused; the optimization routines and descriptive variable names are newly implemented.
 
-All cases use 41 nodes, a free 5–75 s horizon, two-disc vehicle covers, and 0.15 m nominal clearance. Reverse motion is allowed. Jerk is limited to 0.2 m/s^3, as stored in the archived data; this differs from the original paper's parameter table. These results are not claimed as exact reproductions of its historical numerical table.
+The common mesh has 81 nodes, a free 5–75 s horizon, two-disc vehicle covers, and a 0.15 m nominal clearance. Reverse motion is allowed. The archived jerk limit is 0.2 m/s^3; this differs from the original paper's parameter table. These results are not exact reproductions of its historical table.
 
-ASCO rebuilds selected disc-pair/time rows using **signed** surface gaps. Initial thresholds are -4 and 2 m; failed solves raise the lower threshold by 3 m. Successful but invalid candidates lower it by 1.3 m (floor -4 m) and expand the upper by 0.5 m. Crossing thresholds triggers a declared reset/expansion safeguard. Final validation always uses all interactions.
+ASCO rebuilds disc-pair/time rows using signed surface gaps. Initial thresholds are -4 and 2 m; failed solves raise the lower threshold by 3 m. Successful but invalid candidates lower it by 1.3 m (floor -4 m) and expand the upper threshold by 0.5 m. Crossing thresholds triggers the documented reset/expansion safeguard. Final validation always checks every interaction.
 
-`full` loads every collision row. `progressive` accumulates rows near conflict. `linearized` first-order linearizes every collision row while retaining nonlinear RK4 dynamics; it is not a fully convex SCP implementation. This distinction and its failures are explicitly reported. The four methods are not all of the comparators in the original paper.
+`full` loads every collision row. `progressive` accumulates rows near conflict. `linearized` linearizes collision rows while retaining nonlinear forward Euler dynamics; it is not a fully convex sequential-convex-programming implementation. These four implementations are not all the historical comparators in the original paper.
 
-The case budget is 360 s; iterative methods cap each NLP at 75 s, while full NLP uses the case budget in one call. An iteration cap of 16 also applies. Construction and validation can cause elapsed time to exceed the target. Reports use measured wall time, not claimed CPU time, and exclude the shared independent-vehicle initialization.
+The target case budget is 240 s. Iterative methods cap each NLP at 75 s; the full NLP uses the case budget in one call. Construction, validation, and an ongoing solve can exceed the target. A 16-iteration guard also applies. Reported wall times exclude shared independent-vehicle initialization and are descriptive rather than hardware-independent performance bounds.
 
-`prepare_reference` optimizes each vehicle with static obstacles, then synchronizes the cached reference. A failed independent solve retains its geometric seed and reports the failure. Every comparator gets the same reference, including difficult initializations.
+`prepare_reference` plans each vehicle with static obstacles and synchronizes the results. A failed independent solve retains its geometric seed and reports the failure. Every comparator receives the identical cached reference, including difficult initializations.
 
-## Validation and output
+## Validation and outputs
 
-`validate_plan` forward-integrates each returned control sequence with 40 substeps per interval and checks all vehicle/obstacle interactions. Its intersample correction applies to the numerical reconstruction, not a formal ODE enclosure. `audit_control_bounds` analytically checks longitudinal and steering extrema. Failed runs retain their candidates and diagnostics but are never displayed as validated solutions.
+`validate_plan` checks native Euler residuals, endpoints, bounds, and all nominal vehicle/obstacle interactions. Between nodes it evaluates the piecewise-linear rear-axle/heading reconstruction at 40 subdivisions, with a speed-based intersample correction. `audit_control_bounds` checks the interpolated states and piecewise-constant controls. No time-dilation repair is applied. A failed solver call or failed validation remains a failed experiment.
 
-`output/case_*.mat` contains full results; `trajectory_*.csv` uses the same field names as Chapter 5. JSON reports include solver status, wall time, selected-row histories, and independent validation. `reports/experiment_report.json` contains the recorded comparison. `make_figures` regenerates vector PDF and PNG figures and requires the complete comparison set.
+`output/case_*.mat` stores complete candidates and references. `trajectory_*.csv` uses the same field names as Chapter 5. JSON retains statuses, timings, selection histories, and validation. Failed candidates are preserved for diagnosis but are never plotted as accepted demonstrations. `reports` holds the recorded comparison; fresh runs write to `output`.
 
-Eight fixed cases support a reproducible regression study, not a statistical claim over arbitrary environments. Reference: Li et al., IEEE Robotics and Automation Letters 6(2), 1511–1518 (2021). The book explains the algorithm and implementation differences.
-
-## Continuous-bound repair
-
-The common finalizer checks analytic velocity extrema inside every interval. If an otherwise accepted stopped-to-stopped plan exceeds a scalable bound, it applies one common time-dilation factor to the entire fleet. Positions, orientations, steering angles, paths, and relative timing remain unchanged; velocity scales by 1/s, acceleration by 1/s², jerk by 1/s³, and steering rate by 1/s. It rechecks full geometry and dynamics and rejects horizons exceeding 75 s. This does not repair steering-angle violations or an unsuccessful optimization. Reports retain the original horizon, pre-repair violation, scale, postprocessing time, and final cost. Final completion times refer to the repaired plan.
+Eight fixed cases support a reproducible regression study, not a statistical claim over arbitrary environments. Reference: Li et al., IEEE Robotics and Automation Letters 6(2), 1511–1518 (2021).

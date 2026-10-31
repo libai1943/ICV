@@ -28,7 +28,7 @@ for k=1:steps-1
   headingError=atan2(sin(atan2(force(2)+desired*body(2),force(1)+desired*body(1))-q(3)),cos(atan2(force(2)+desired*body(2),force(1)+desired*body(1))-q(3)));
   desiredSteering=min(scene.maxSteering,max(-scene.maxSteering,atan(2*scene.geometry.LW*sin(headingError)/5.5)));
   input=[min(scene.maxJerk,max(-scene.maxJerk,(desiredAcceleration-q(6))/dt));min(scene.maxSteeringRate,max(-scene.maxSteeringRate,(desiredSteering-q(5))/dt))];
-  next=rk_step(q,input,dt,scene.geometry.LW);
+  next=euler_step(q,input,dt,scene.geometry.LW);
   if next(4)<0,next(4)=0;next(6)=0;end
   if next(4)>scene.maxSpeed,next(4)=scene.maxSpeed;next(6)=0;end
   trajectory(7:8,k,car)=input;trajectory(1:6,k+1,car)=next;

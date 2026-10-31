@@ -24,7 +24,7 @@ f=figure('Color','w','Position',[50,50,900,1230],'Visible','off');fractions=[0,.
 for panel=1:6
  ax=axes(f,'Position',[.025+mod(panel-1,2)*.50,.72-floor((panel-1)/2)*.33,.45,.26]);hold(ax,'on');map(ax,task);k=1+round(fractions(panel)*(size(r.state,2)-1));
  for car=1:count
-  plot(ax,r.state(1,1:k,car),r.state(2,1:k,car),'Color',colors(car,:),'LineWidth',.85);BookDrawVehicle(ax,r.state(:,k,car),task.geometry,colors(car,:),car,10);
+  plot(ax,r.state(1,1:k,car),r.state(2,1:k,car),'Color',colors(car,:),'LineWidth',1.3);BookDrawVehicle(ax,r.state(:,k,car),task.geometry,colors(car,:),car,10);
  end
  axis(ax,'off');text(ax,0,-27,sprintf('(%c) t = %.1f s',96+panel,(k-1)*r.horizon/(size(r.state,2)-1)),'FontSize',18,'HorizontalAlignment','center');
 end
@@ -33,7 +33,7 @@ saveplot(f,out,'fig06-05');
 nodes=size(r.state,2);dt=r.horizon/(nodes-1);sub=40;dense=zeros(6,(nodes-1)*sub+1,count);
 for car=1:count
  dense(:,1,car)=r.state(:,1,car);
- for k=1:nodes-1,for j=1:sub,at=(k-1)*sub+j;dense(:,at+1,car)=rk_step(dense(:,at,car),r.control(:,k,car),dt/sub,task.geometry.LW);end,end
+ for k=1:nodes-1,for j=1:sub,at=(k-1)*sub+j;dense(:,at+1,car)=r.state(:,k,car)+(j/sub)*(r.state(:,k+1,car)-r.state(:,k,car));end,end
 end
 [squared,radius]=collision_vector(dense,task);clearance=min(sqrt(max(0,squared))-radius,[],2);time=linspace(0,r.horizon,nodes);
 f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');labels={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Full-geometry clearance'};units={'v (m/s)','\phi (rad)','jerk (m/s^3)','Clearance (m)'};
