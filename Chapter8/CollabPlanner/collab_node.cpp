@@ -12,6 +12,7 @@
 #include <numeric>
 #include <queue>
 #include <vector>
+#include <stdexcept>
 
 #include "collab_planner/KeyboardInput.h"
 #include "common/backward.hpp"
@@ -203,22 +204,22 @@ class GlobalPlanner {
             }
         } while (next_permutation(indices.begin(), indices.end()));
 
-        VariancePairing best_pairing = top_pairings.top();
-        for (size_t i = 1; i < 50 && !top_pairings.empty(); ++i) {
-            const auto& pairing = top_pairings.top();
-            if (pairing.distance_sum > best_pairing.distance_sum) {
-                best_pairing = pairing;
-            }
+        if (top_pairings.empty())
+            throw std::runtime_error("No assignment candidates");
+        VariancePairing best = top_pairings.top();
+        top_pairings.pop();
+        while (!top_pairings.empty()) {
+            const auto candidate = top_pairings.top();
             top_pairings.pop();
+            if (candidate.distanceSum > best.distanceSum ||
+                (candidate.distanceSum == best.distanceSum &&
+                 candidate.indices < best.indices))
+                best = candidate;
         }
-
-        // Update end_points using the best pairing
-        Poses updated_end_points;
-        for (size_t i = 0; i < best_pairing.indices.size(); ++i) {
-            updated_end_points[i] = end_points[best_pairing.indices[i]];
-        }
-
-        return updated_end_points;
+        Poses reordered{};
+        for (std::size_t i = 0; i < end_points.size(); ++i)
+            reordered.at(i) = end_points.at(best.indices.at(i));
+        return reordered;
     }
 
     void GetGoalPoseCallback(const geometry_msgs::PoseStampedConstPtr& msg) {

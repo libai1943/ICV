@@ -51,6 +51,6 @@ P. E. Hart, N. J. Nilsson, and B. Raphael, *A Formal Basis for the Heuristic Det
 
 G. Sharon, R. Stern, A. Felner, and N. R. Sturtevant, *Conflict-Based Search for Optimal Multi-Agent Pathfinding*, Artificial Intelligence, 219, 40–66, 2015.
 
-## Illustrated results (revision 2026-10-31)
+## Illustrated results
 
 `run_examples` calls `draw_search_examples` to regenerate Figures 3.3-3.5 from computed paths. `illustrated_examples.json` records four/eight-connected A* costs 15 and 12.6568542495 (47/33 expansions), the corridor path with two waits and arrival time 6, and CBS sum of costs 6 (8 high-level expansions). The CBS root and both first children are explicitly checked for the illustrated vertex/edge conflicts. Subfigure captions are centered below panels.

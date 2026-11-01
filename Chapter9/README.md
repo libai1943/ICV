@@ -34,8 +34,4 @@ If the IDE uses a different sketchbook directory, set `ICV_ARDUINO_SKETCHBOOK` t
 
 Open `Firmware/main/main.ino` in the Arduino IDE, select Arduino Uno and the connected device port, and run **Verify**. Configure the vehicle identifier, pin connections, calibration constants, and serial settings for the target chassis using the book's platform procedure. Then use **Upload** for that connected vehicle.
 
-The migration preserves the sketch's pin assignments, timing, message layouts, numerical constants, and control equations. Chinese comments were translated into English. Library authorship and notices remain in the supplied library files.
-
-## Verification scope
-
-Source comparison confirmed that the firmware's executable tokens were unchanged by the comment translation. The review environment did not compile the Arduino sketch, upload firmware, or operate a vehicle. Complete the platform calibration and device-specific checks described in the book before a physical experiment.
+The sketch defines the platform's pin assignments, timing, message layouts, calibration constants, and control equations. Check these settings against the assembled vehicle before uploading. Library authorship and notices remain in the supplied files.

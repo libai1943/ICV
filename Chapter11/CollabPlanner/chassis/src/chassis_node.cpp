@@ -7,6 +7,12 @@
 #include <std_msgs/Float64.h>
 #include <tf/tf.h>
 
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <cstring>
+#include <iostream>
+#include <atomic>
 #include <functional>
 #include <thread>
 
@@ -40,10 +46,11 @@ typedef unsigned char byte;
 void HandleMessage(byte type, byte *data, int len) {
     if (type == MSG_TYPE_VELOCITY) {
         if (len != sizeof(VelocityMessage)) return;
-        VelocityMessage *vel = (VelocityMessage *)data;
+        VelocityMessage vel{};
+        std::memcpy(&vel, data, sizeof(vel));
 
         std_msgs::Float64 msg;
-        msg.data = vel->velocity / 100.0;
+        msg.data = vel.velocity / 100.0;
         velocity_publisher_->publish(msg);
     }
 }
@@ -62,7 +69,8 @@ int16_t GenerateMessage(byte target, byte type, const byte *data, int16_t len, b
 }
 
 tiny_serial_handle_t port_handle;
-Tiny::ProtoLight proto;
+Tiny::ProtoLight tx_protocol;
+Tiny::ProtoLight rx_protocol;
 
 void CmdVelCb(const sandbox_msgs::ChassisCommandConstPtr &msg) {
     steering_rad_ = std::max(std::min(-msg->steering, max_phi_plan_), min_phi_plan_);
@@ -77,7 +85,7 @@ void CmdVelCb(const sandbox_msgs::ChassisCommandConstPtr &msg) {
     byte buf[100] = {0};
     int16_t size = GenerateMessage((unsigned char)msg->target, MSG_TYPE_TWIST, (byte *)&twist,
                                     sizeof(TwistMessage), buf);
-    proto.write(reinterpret_cast<char *>(buf), size);
+    tx_protocol.write(reinterpret_cast<char *>(buf), size);
 }
 
 int serial_send_fd(void *p, const void *buf, int len) {
@@ -97,33 +105,33 @@ int main(int argc, char **argv) {
         std::cerr << "Error opening serial port" << std::endl;
         return 1;
     }
-    proto.enableCheckSum();
-    proto.begin(serial_send_fd, serial_receive_fd);
-
-    bool is_terminate = false;
-
-    std::thread rx_thread(
-        [&is_terminate](Tiny::ProtoLight &proto) {
-            Tiny::Packet<12> packet;
-            while (!is_terminate) {
-                int len = proto.read(packet);
-                if (len > 1) {
-                    unsigned char *data = (unsigned char *)packet.data();
-                    HandleMessage(data[0], data + 1, len - 1);
-                }
-            }
-        },
-        std::ref(proto));
-
-    ros::Subscriber cmd_subscriber = nh.subscribe("/chassis", 10, CmdVelCb);
-    ros::Publisher vel_publisher = nh.advertise<std_msgs::Float64>("/velocity", 1, false);
+    tx_protocol.enableCheckSum();
+    rx_protocol.enableCheckSum();
+    tx_protocol.begin(serial_send_fd, serial_receive_fd);
+    rx_protocol.begin(serial_send_fd, serial_receive_fd);
+    ros::Publisher vel_publisher =
+        nh.advertise<std_msgs::Float64>("/velocity", 1, false);
     velocity_publisher_ = &vel_publisher;
-
+    ros::Subscriber cmd_subscriber =
+        nh.subscribe("/chassis", 10, CmdVelCb);
+    std::atomic<bool> terminate{false};
+    std::thread rx_thread([&terminate] {
+        Tiny::Packet<12> packet;
+        while (!terminate.load()) {
+            int len = rx_protocol.read(packet);
+            if (len > 1) {
+                byte* data = reinterpret_cast<byte*>(packet.data());
+                HandleMessage(data[0], data + 1, len - 1);
+            }
+        }
+    });
     ros::spin();
-    is_terminate = true;
+    terminate.store(true);
     rx_thread.join();
-    proto.end();
+    rx_protocol.end();
+    tx_protocol.end();
 
     tiny_serial_close(port_handle);
     return 0;
 }
+

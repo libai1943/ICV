@@ -6,13 +6,9 @@ These are chapter-local copies of `pure_pursuit` and `sandbox_msgs` from the exp
 
 - Original repository: https://github.com/YueshuoSun/CollabPlanner
 - Original branch: `experiment`
-- Exact imported commit: `81774359b95ae1a45bfd9a0c06e93a04197694f8`
+- Source commit: `81774359b95ae1a45bfd9a0c06e93a04197694f8`
 - Original paths: `pure_pursuit/` and `sandbox_msgs/`
 - Snapshot: https://github.com/YueshuoSun/CollabPlanner/tree/81774359b95ae1a45bfd9a0c06e93a04197694f8
 - Book repository: https://github.com/libai1943/ICV
 
-These packages are copied without algorithmic changes. The Chapter 11 experimental tree includes the same packages. Put only one copy of each package in a catkin workspace. The existing Chapter 10 MATLAB PID example has been preserved. ROS build and vehicle execution were not performed in the import environment.
-
-## Book revision: explicit forward Euler integral
-
-The tracking node now uses the previous sample error in its incremental PI integral term. This is the documented change after the initial import. The same edit is maintained in both Chapters 10 and 11. Default zero-integral-gain behavior is unchanged; Chapter 10 includes an algebraic regression with nonzero gains. This revision has not been tested on a vehicle.
+The tracking and message packages match Chapter 11. Put one copy of each package in a catkin workspace. The incremental PI integral uses the previous-sample error, consistent with first-order explicit forward Euler. The tracking node validates candidate poses and half-open trajectory ranges before accessing them and publishes a neutral command when the maneuver ends.

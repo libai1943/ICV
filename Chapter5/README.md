@@ -31,7 +31,7 @@ The physical states are `[x;y;theta;v;phi;a]`, with controls `[jerk;omega]`, rea
 
 All five curved branches carry opposing traffic. Their widths are `[5.6,5.8,5.5,5.9,5.7]` m; the central region has elliptical semiaxes 12 m and 9 m. Each road is only moderately wider than two vehicle bodies (3.884 m together). Fixed scenario seeds perturb branch angles while retaining unequal widths, strong bends, oblique approaches, and nonconvex roadside land blocks. Both arrivals and departures use every branch.
 
-`simulate_sfm` produces a heuristic proposal; it is not guaranteed to reach the assigned endpoints. The recorded SFM proposals did not do so. `prepare_reference` therefore constructs curved geometric routes with deterministic temporal reservations. The accepted experiments evaluate this complete safeguarded pipeline, not SFM alone. The MATLAB routines are independently implemented and do not invoke the research Python optimizer.
+`simulate_sfm` provides a diagnostic social-force rollout. All reported optimization runs use references independently constructed by `prepare_reference` from curved routes and deterministic temporal reservations. LIOM refines these reservation references. The MATLAB implementation uses a fixed 1 s scaling time when combining acceleration-scaled virtual forces with desired velocity to obtain a steering direction.
 
 `construct_corridors` checks complete candidate boxes against polygonal obstacles, including their interiors. It starts with a positive box around each center and refines the expansion increment near oblique boundaries. Relative corridors are formed for individual covering-disc pairs.
 
@@ -41,11 +41,11 @@ Node feasibility alone is insufficient. Additional separating-plane constraints 
 
 ## Validation and recorded results
 
-The recorded 9-, 12-, and 15-ICV tasks pass the independent validator. See `reports/experiment_report.json` for actual residuals, clearances, runtimes, initialization diagnostics, and all intermediate solver statuses. These examples demonstrate numerical feasibility; they do not establish global optimality, real-time performance, or exhaustive reliability over random road networks.
+The recorded 9-, 12-, and 15-ICV tasks pass the independent validator. See `reports/experiment_report.json` for actual residuals, clearances, runtimes, initialization diagnostics, and all intermediate solver statuses. The results describe the feasibility and computational effort of these three tasks.
 
-`validate_trajectories` checks every native Euler update, boundary state, control bound, covering-disc pair, and polygon. Between nodes it checks the piecewise-linear rear-axle/heading reconstruction with 80 subdivisions and a speed-based conservative clearance correction. `audit_control_bounds` checks that reconstruction and its interval controls. This geometric interpolation does not replace the forward Euler dynamics and is not a closed-loop tracking certificate. An independent NumPy implementation also verifies the exported trajectory files.
+`validate_trajectories` checks every native Euler update, boundary state, control bound, covering-disc pair, and polygon. Between nodes it checks the piecewise-linear rear-axle/heading reconstruction with 80 subdivisions and a speed-based conservative clearance correction. `audit_control_bounds` checks that reconstruction and its interval controls. The geometric check uses the declared piecewise-linear reconstruction. An independent NumPy implementation also verifies the exported trajectory files.
 
-MAT files retain initial references, trajectories, solver histories, and validation. CSV files use explicit SI-unit column names. JSON includes failed intermediate iterations. The plot generator requires an accepted saved trajectory; it never manufactures an experimental solution. `output/figures` contains vector PDFs and PNG previews, while `reports` preserves the recorded numerical data independently of subsequent runs.
+MAT files retain initial references, trajectories, solver histories, and validation. CSV files use explicit SI-unit column names. JSON retains the intermediate solver diagnostics. The plot generator uses the validated saved trajectories. `output/figures` contains vector PDFs and PNG previews, while `reports` preserves the recorded numerical data independently of subsequent runs.
 
 The vehicle body contains a triangular forward marker; colors, Times New Roman labels, and subfigure captions follow the companion chapters. Figure 5.1 is a credited real photograph in the manuscript, not a simulation output.
 

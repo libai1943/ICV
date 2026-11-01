@@ -5,11 +5,10 @@ This chapter contains the standalone CasADi program used in the book and the com
 | Path | Purpose |
 |---|---|
 | `casadi_example.cc` | Primary book example, including solution, cost, residual, and solver status |
-| `upstream_casadi_example/` | Original three-variable example with English comments and its CMake file |
 | `CollabPlanner/` | Simulation package named `collab_planner` |
 | `Chapter8-source.zip` | Chapter-local source and documentation archive |
 
-Both C++ examples and the imported planner select IPOPT with MA57. The analytic solution of the example is `(x,y,z)=(0,1,0)`, with zero objective value and zero equality residual.
+The C++ example and the planner select IPOPT with MA57. The analytic solution of the example is `(x,y,z)=(0,1,0)`, with zero objective value and zero equality residual.
 
 ## Recorded environment
 
@@ -42,18 +41,6 @@ g++ -std=c++11 "$ICV_BOOK_ROOT/Chapter8/casadi_example.cc" \
 ```
 
 Confirm MA57 in the solver startup output, then inspect the termination status, solution, objective, and equality residual. The expected numerical solution approaches the analytic values given above within the selected tolerance.
-
-The imported upstream variant can be built separately:
-
-```bash
-g++ -std=c++11 \
-  "$ICV_BOOK_ROOT/Chapter8/upstream_casadi_example/casadi_example.cc" \
-  -I/usr/local/include -L/usr/local/lib -Wl,-rpath,/usr/local/lib \
-  -lcasadi -o "$ICV_BOOK_ROOT/Chapter8/build/upstream_casadi_example"
-"$ICV_BOOK_ROOT/Chapter8/build/upstream_casadi_example"
-```
-
-Its source, initial authorship, and exact upstream commit are documented in [upstream_casadi_example/README.md](upstream_casadi_example/README.md).
 
 ## Build the simulation ROS workspace
 
@@ -105,8 +92,6 @@ roslaunch collab_planner test.launch
 
 Follow the English prompts in the keyboard terminal to select the initial and target formations. Available characters are printed by the program. The planner's CSV log filenames are relative to its process working directory, usually the ROS runtime directory for a standard launch.
 
-## Provenance and verification
+## Attribution
 
-[CollabPlanner/README.md](CollabPlanner/README.md) records Yueshuo Sun's initial implementation, the exact imported commit, translated comments, solver configuration, and small build-metadata corrections. Third-party notices remain in their original files.
-
-The migration was inspected statically, including source differences, Python syntax, XML syntax, and isolated ROS package discovery. The C++ examples and ROS packages were not compiled or launched in the review environment; no operating-system installation or hardware execution was performed there.
+The CasADi example follows the three-variable demonstration supplied by Yueshuo Sun in `YueshuoSun/casadi_example` (source commit `6314f25f7608dd149cbce2780fc79dc0087023ed`). [CollabPlanner/README.md](CollabPlanner/README.md) records planner authorship and supporting contributions. Third-party notices remain in their files.

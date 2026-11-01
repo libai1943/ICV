@@ -46,7 +46,7 @@ axis(ax,'off');plot(ax,[-21,-16],[-15,-15],'k-','LineWidth',1.2);text(ax,-18.5,-
 text(ax,-21,16,sprintf('{\\it t} = %.1f s; %d ICVs in the central region',(k-1)*dt,max(occupancy)),'FontSize',17,'HorizontalAlignment','left');
 save_plot(f,out,'fig05-09');
 % 5.7: actual state/control profiles and independent clearance.
-f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');time=linspace(0,scene.horizon,scene.nodes);captions={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Full-geometry clearance'};units={'{\it v} (m/s)','\phi (rad)','{\it jerk} (m/s^3)','Clearance (m)'};rows=[4,5,7];
+f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');time=linspace(0,scene.horizon,scene.nodes);captions={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Sampled covering-disc clearance'};units={'{\it v} (m/s)','\phi (rad)','{\it jerk} (m/s^3)','Clearance (m)'};rows=[4,5,7];
 for index=1:4
  ax=axes(f,'Position',[.085+mod(index-1,2)*.49,.62-floor((index-1)/2)*.49,.38,.29]);hold(ax,'on');
  if index<4,for car=1:chosen,if index==3,values=states(7,:,car);values(end)=values(end-1);stairs(ax,time,values,'Color',colors(car,:),'LineWidth',1);else,plot(ax,time,states(rows(index),:,car),'Color',colors(car,:),'LineWidth',1);end,end

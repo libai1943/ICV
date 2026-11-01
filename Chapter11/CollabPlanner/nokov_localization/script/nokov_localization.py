@@ -23,12 +23,17 @@ class MarkerSet:
         self.ready = False
 
     def get_available_points(self):
-        points = [[v.pose.position.x, v.pose.position.y, v.pose.position.z] for k, v in self.markers.items() if v and k > 0]
-        return np.array(points) if points else np.empty(shape=(0, 3))
+        points = [
+            [msg.pose.position.x, msg.pose.position.y,
+             msg.pose.position.z]
+            for marker_id, msg in self.markers.items()
+            if marker_id > 0 and msg is not None
+        ]
+        return np.asarray(points) if points else np.empty((0, 3))
 
     def check_ready(self):
-        if not self.ready and all([v for _, v in self.markers.items()]):
-            self.ready = True
+        self.ready = bool(self.markers) and all(
+            msg is not None for msg in self.markers.values())
 
 rad_offset = 0 # np.pi / 2
 
@@ -54,10 +59,11 @@ class Vehicle(MarkerSet):
         ]
 
     def get_pose(self):
-        set_ori = self.markers[0].pose.orientation
-        roll, pitch, yaw = Rotation.from_quat([set_ori.x, set_ori.y, set_ori.z, set_ori.w]).as_euler('xyz')
-        marker_pose = self.markers[self.rear_center].pose
-        return marker_pose.position.x, marker_pose.position.y, yaw + rad_offset
+        q = self.markers[0].pose.orientation
+        _, _, yaw = Rotation.from_quat(
+            [q.x, q.y, q.z, q.w]).as_euler("xyz")
+        p = self.markers[self.rear_center].pose.position
+        return p.x, p.y, yaw + rad_offset
 
     def get_footprint(self):
         set_ori = self.markers[0].pose.orientation
@@ -70,25 +76,31 @@ class Vehicle(MarkerSet):
         return points
 
     def find_rear_center(self):
-        if 0 not in self.markers or not self.markers[0]:
-            return
-
-        marker_set = self.markers[0]
-        quad = [marker_set.pose.orientation.x, marker_set.pose.orientation.y, marker_set.pose.orientation.z,
-                marker_set.pose.orientation.w]
-        _, _, yaw = Rotation.from_quat(quad).as_euler('xyz')
+        body = self.markers.get(0)
+        if body is None:
+            return False
+        q = body.pose.orientation
+        _, _, yaw = Rotation.from_quat(
+            [q.x, q.y, q.z, q.w]).as_euler("xyz")
         yaw += rad_offset
+        heading = np.array([np.cos(yaw), np.sin(yaw)])
+        candidates = [
+            (key, np.array([msg.pose.position.x,
+                            msg.pose.position.y]))
+            for key, msg in self.markers.items()
+            if key > 0 and msg is not None
+        ]
+        if not candidates:
+            return False
+        self.rear_center = min(
+            candidates, key=lambda item: item[1] @ heading)[0]
+        return True
 
-        vectors = [(k, np.array([v.pose.position.x, v.pose.position.y])) for k, v in self.markers.items() if k > 0]
-        unit = np.array([np.cos(yaw), np.sin(yaw)])
-        projections = [(k, np.dot(v, unit) / np.linalg.norm(unit)) for k, v in vectors]
-        self.rear_center, _ = min(projections, key=lambda v: v[1])
-        print('Vehicle found rear center marker %d' % self.rear_center)
-
-        def check_ready(self):
-            MarkerSet.check_ready(self)
-            if self.ready and not self.rear_center:
-                self.find_rear_center()
+    def check_ready(self):
+        self.ready = bool(self.markers) and all(
+            msg is not None for msg in self.markers.values())
+        if self.ready and self.rear_center is None:
+            self.ready = self.find_rear_center()
 
 class Polygon(MarkerSet):
     def __init__(self):
@@ -140,7 +152,8 @@ class Localization:
                 self.vehicles.setdefault(vehicle_idx, Vehicle()).markers[marker_idx] = None
 
                 if sub_topic == 'pose':
-                    topic_callback = partial(self.vehicle_callback, vehicle_idx, marker_idx)
+                    topic_callback = partial(
+                        self.vehicle_callback, vehicle_idx, marker_idx)
                 elif sub_topic == 'twist' and marker_idx == 0:
                     topic_callback = partial(self.vehicle_twist_callback, vehicle_idx)
             elif marker_set.startswith('Obstacle'):
@@ -220,7 +233,7 @@ class Localization:
         points = np.zeros((0, 3))
         rear_points = np.empty((0, 3))
         for i, (k, veh) in enumerate(self.vehicles.items()):
-            if veh.ready and veh.rear_center:
+            if veh.ready and veh.rear_center is not None:
                 vertices = veh.get_footprint()
                 self.visual.plot(vertices[:, 0], vertices[:, 1], width=0.01, ns='vehicle', color=(0.5, 0.2, 1), id=k, close=True)
 
@@ -249,8 +262,9 @@ class Localization:
 
 if __name__ == '__main__':
     rospy.init_node('nokov_localization')
-    ns = '/vrpn_client_node'
-    time.sleep(2)
-    loc = Localization(ns)
-    timer = rospy.Timer(rospy.Duration.from_sec(1.0/60.0), lambda msg: loc.spin_once())
+    namespace = "/vrpn_client_node"
+    rospy.sleep(2.0)
+    loc = Localization(namespace)
+    timer = rospy.Timer(rospy.Duration(1.0 / 60.0),
+                        lambda event: loc.spin_once())
     rospy.spin()

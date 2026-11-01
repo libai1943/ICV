@@ -1,6 +1,6 @@
 function reference=simulate_sfm(scene)
 % Social force model with velocity relaxation, anticipatory repulsion,
-% bounded jerk/steering rate, and bicycle propagation. It is an initializer.
+% bounded jerk/steering rate, and bicycle propagation for diagnostic rollout.
 count=size(scene.start,2);steps=scene.nodes;dt=scene.horizon/(steps-1);
 trajectory=zeros(10,steps,count);trajectory(1:6,1,:)=reshape(scene.start,6,1,count);progress=ones(1,count);
 offset=(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2;radius=hypot(scene.geometry.LW+scene.geometry.LF+scene.geometry.LR,scene.geometry.LB)/2;
@@ -25,7 +25,10 @@ for k=1:steps-1
    force=force+3*exp(min(8,(radius+scene.margin-distance)/.8))*away;
   end
   desiredAcceleration=min(scene.maxAcceleration,max(-scene.maxAcceleration,dot(force,body)));
-  headingError=atan2(sin(atan2(force(2)+desired*body(2),force(1)+desired*body(1))-q(3)),cos(atan2(force(2)+desired*body(2),force(1)+desired*body(1))-q(3)));
+  steeringTimeScale=1.0; % Seconds: convert acceleration-scale force to velocity.
+  steeringVelocity=steeringTimeScale*force+desired*body;
+  steeringBearing=atan2(steeringVelocity(2),steeringVelocity(1));
+  headingError=atan2(sin(steeringBearing-q(3)),cos(steeringBearing-q(3)));
   desiredSteering=min(scene.maxSteering,max(-scene.maxSteering,atan(2*scene.geometry.LW*sin(headingError)/5.5)));
   input=[min(scene.maxJerk,max(-scene.maxJerk,(desiredAcceleration-q(6))/dt));min(scene.maxSteeringRate,max(-scene.maxSteeringRate,(desiredSteering-q(5))/dt))];
   next=euler_step(q,input,dt,scene.geometry.LW);

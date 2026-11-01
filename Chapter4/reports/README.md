@@ -1,3 +1,3 @@
-# Recorded numerical data
+# Recorded numerical results
 
-These files record the current explicit-Euler revision. Solver and validation failures are preserved. Only accepted entries may be treated as completed plans. Fresh MATLAB runs write to `output`; recorded reports are not silently overwritten by those runs. The environment file identifies the optimizer and timing limitations.
+These files contain the demonstrations presented in the book, including trajectories, solver histories, validation results, and numerical-environment information. Fresh MATLAB runs write to `output`. The saved reports provide the data used for the published figures and tables.

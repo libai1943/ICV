@@ -1,6 +1,6 @@
 # Chapter 11: integrated cooperative-driving experiment
 
-`CollabPlanner` contains the complete experimental source snapshot, now maintained inside the book repository. It is a container for six ROS packages:
+`CollabPlanner` contains the experimental source. It is a container for six ROS packages:
 
 | Package | Role |
 |---|---|
@@ -11,7 +11,7 @@
 | `nokov_localization` | Localization processing |
 | `vrpn_client_ros` | Motion-capture stream interface |
 
-The `third_party` directory contains the host Tinyproto dependency archive. [CollabPlanner/README.md](CollabPlanner/README.md) records the exact upstream commit, Yueshuo Sun's initial implementation and integration, preserved third-party contributions, and the import changes. `Chapter11-source.zip` includes the complete chapter tree and the binary Tinyproto archive.
+The `third_party` directory contains the host Tinyproto dependency archive. [CollabPlanner/README.md](CollabPlanner/README.md) records source attribution and package conventions. `Chapter11-source.zip` includes the complete chapter tree and the binary Tinyproto archive.
 
 ## Central checkout and prerequisites
 
@@ -38,10 +38,10 @@ Use the archive's Makefile: the `chassis` package links `tinyprotocol`, and this
 
 ```bash
 export ICV_BOOK_ROOT="$HOME/src/ICV"
-sha256sum "$ICV_BOOK_ROOT/Chapter11/CollabPlanner/third_party/tinyproto.zip"
+cd "$ICV_BOOK_ROOT/Chapter11/CollabPlanner/third_party"
+sha256sum tinyproto.zip
 mkdir -p "$HOME/opt-src"
-unzip "$ICV_BOOK_ROOT/Chapter11/CollabPlanner/third_party/tinyproto.zip" \
-  -d "$HOME/opt-src"
+unzip tinyproto.zip -d "$HOME/opt-src"
 cd "$HOME/opt-src/tinyproto-stable"
 make -j4
 sudo make install DESTDIR=/usr/local
@@ -96,6 +96,6 @@ rosrun collab_planner keyboard_input
 
 Use the English keyboard prompts to select the formation task. The planner writes relative CSV log filenames in its process working directory. The chapter-local tracking node uses the explicit forward Euler integral convention explained in [Chapter10/README.md](../Chapter10/README.md).
 
-## Verification scope
+## Runtime checks
 
-The migration checked source differences, Python syntax, XML syntax, the Tinyproto archive hash, and an isolated inventory containing exactly the six package names listed above. Small package-manifest corrections are documented in `CollabPlanner/README.md`. ROS compilation, communication, Arduino upload, and vehicle execution were not performed in the review environment. The tracking integral increment has subsequently been aligned with the book's explicit forward Euler convention. Other illustrative robustness refinements in the book are identified separately from the imported runtime implementation.
+The localization node accepts a vehicle only after its rear marker has been identified. The tracking node converts accepted poses to meters once, validates trajectory ranges, and sends a neutral command immediately on completion. Transmit and receive framing use separate protocol instances; the receive thread stops before the serial port closes. Portable regression tests are provided in `../tests`.

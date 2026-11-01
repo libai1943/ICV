@@ -39,6 +39,6 @@ S. Boyd and L. Vandenberghe, *Convex Optimization*, Cambridge University Press, 
 
 S. Gottschalk, M. C. Lin, and D. Manocha, *OBBTree: A Hierarchical Structure for Rapid Interference Detection*, SIGGRAPH, 1996.
 
-## Illustrated results (revision 2026-10-31)
+## Illustrated results
 
 `run_examples` also exports the four-wheel bicycle construction, rotated instantaneous-center and disc-cover diagrams, numbered corridor trials, supporting-face dual certificate, and a six-state forward-simulation figure. All figures are vector PDFs with Times New Roman text. The CSV column name is `jerk_m_s3`; jerk is lowercase throughout.

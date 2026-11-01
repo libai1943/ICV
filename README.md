@@ -22,7 +22,7 @@ The planning models use **first-order explicit forward Euler** for vehicle-motio
 
 The recorded MATLAB environment is R2021b, CasADi 3.7.2, IPOPT 3.14.11, and a compatible HSL library containing MA57. The Linux/ROS baseline and its numerical-library versions are documented in Chapter 8. HSL binaries and font files require separate installation.
 
-Chapters 8–11 contain their source locally, together with provenance, exact upstream revisions, and English instructions. Each of these chapters also provides a `ChapterN-source.zip` archive. Extracting an archive produces its `ChapterN` directory. The Chapter 11 archive includes the original binary `third_party/tinyproto.zip` dependency archive.
+Chapters 8–11 contain their source locally, together with provenance, source attribution, and English instructions. Each of these chapters also provides a `ChapterN-source.zip` archive. Extracting an archive produces its `ChapterN` directory. The Chapter 11 archive includes the binary `third_party/tinyproto.zip` dependency archive.
 
 Clone the book repository **outside a catkin `src` directory**. Each chapter README shows how to link only its required packages into a separate workspace. Chapter 8 and Chapter 11 contain different snapshots of `collab_planner`; Chapter 10 and Chapter 11 both contain `pure_pursuit` and `sandbox_msgs`. A workspace uses one copy of each package name.
 
@@ -37,6 +37,6 @@ For an existing checkout, set `ICV_BOOK_ROOT` to its absolute path. Record the p
 
 ## Outputs and verification
 
-The MATLAB chapters write new outputs to their chapter-local `output` directories; `reports` preserves the recorded demonstrations. The imported ROS planner writes relative CSV log filenames in its process working directory. Chapter READMEs identify package dependencies, launch commands, and controller conventions.
+The MATLAB chapters write new outputs to their chapter-local `output` directories; `reports` preserves the recorded demonstrations. The ROS planner writes relative CSV log filenames in its process working directory. Chapter READMEs identify package dependencies, launch commands, and controller conventions.
 
-The source migration was verified by file inventories, executable-token comparison, Python syntax compilation, XML parsing, and isolated package-name inventories. The migrated ROS packages, Arduino firmware, and complete hardware experiment were not built or executed in the review environment. Existing third-party authorship and license notices remain with the corresponding files.
+Core localization, tracking, target-assignment, and communication lifecycle tests are provided in `tests`. They exercise actual source functions using portable interface fixtures. Build and commission the ROS/firmware system on the documented platform before operating vehicles. Third-party authorship and license notices remain with the corresponding files.

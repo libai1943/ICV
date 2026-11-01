@@ -1,3 +1,8 @@
+#include <algorithm>
+#include <cmath>
+#include <cfloat>
+#include <sstream>
+#include <vector>
 #include <ros/ros.h>
 #include <sandbox_msgs/AprilObject.h>       
 #include <sandbox_msgs/ChassisCommand.h>    
@@ -115,7 +120,9 @@ TrajectoryPoint Interpolate(const TrajectoryPoint p0, TrajectoryPoint p1, double
     pt.time = (1 - weight) * p0.time + weight * p1.time;
     pt.x = (1 - weight) * p0.x + weight * p1.x;
     pt.y = (1 - weight) * p0.y + weight * p1.y;
-    pt.yaw = (1 - weight) * p0.yaw + weight * p1.yaw;
+    const double delta_yaw = std::atan2(std::sin(p1.yaw - p0.yaw),
+                                         std::cos(p1.yaw - p0.yaw));
+    pt.yaw = p0.yaw + weight * delta_yaw;
     pt.velocity = (1 - weight) * p0.velocity + weight * p1.velocity;
     pt.acceleration = (1 - weight) * p0.acceleration + weight * p1.acceleration;
     return pt;
@@ -157,6 +164,7 @@ class PurePursuit {
     double longitude_kp_ = 1.8, longitude_ki_ = 0.0, longitude_output_ = 0.0, longitude_perror_ = 0.0;   
     int car_index_ = 0, lookahead_index_ = 0;    
 
+    bool pose_initialized_ = false;
     bool approached_ = false;          
     bool final_approached_ = false;    
 
@@ -172,55 +180,79 @@ class PurePursuit {
 
     double max_steering_ = 0.59559375;
     double min_steering_ = -0.59559375;
-    void ObjectCallback(const AprilObjectConstPtr &msg) {
-        if (msg->id == tracking_object_ && msg->type == AprilObject::VEHICLE) {
-            if (object_.x != 0 && object_.y != 0) {
-                double distance = hypot(msg->x / 1000 - object_.x, msg->y / 1000 - object_.y);
-                if (distance <= 0.5) object_ = *msg;
-            } else {
-                object_ = *msg;
-            }
-            object_.x = object_.x / 1000;
-            object_.y = object_.y / 1000;
+    void ObjectCallback(const AprilObjectConstPtr& msg) {
+        if (msg->id != tracking_object_ ||
+            msg->type != AprilObject::VEHICLE) return;
+        AprilObject candidate = *msg;
+        candidate.x *= 0.001;
+        candidate.y *= 0.001;
+        if (!std::isfinite(candidate.x) ||
+            !std::isfinite(candidate.y) ||
+            !std::isfinite(candidate.yaw)) return;
+        if (pose_initialized_) {
+            double jump = std::hypot(candidate.x - object_.x,
+                                     candidate.y - object_.y);
+            if (jump > 0.5) return;
         }
+        object_ = candidate;
+        pose_initialized_ = true;
     }
-    void TrajCallback(const TrajectoryConstPtr &msg) {
-        if (msg->target != tracking_object_) return;
-        std::cout << tracking_object_ << " - Trajectory received" << std::endl;
-        car_index_ = lookahead_index_ = 0;
-        if (approached_) {
-            current_range_ = 0;
+    void TrajCallback(const TrajectoryConstPtr& msg) {
+        if (msg->target != tracking_object_ || msg->points.size() < 2) return;
+        for (std::size_t i = 0; i < msg->points.size(); ++i) {
+            const auto& p = msg->points[i];
+            if (!std::isfinite(p.time) || !std::isfinite(p.x) ||
+                !std::isfinite(p.y) || !std::isfinite(p.yaw) ||
+                !std::isfinite(p.velocity) || !std::isfinite(p.acceleration) ||
+                p.time < 0.0) return;
+            if (i > 0 && p.time <= msg->points[i - 1].time) return;
         }
-        ranges_.clear();
+        std::vector<std::pair<int, int>> new_ranges;
         int start = 0;
-        for (size_t i = 1; i < msg->points.size(); i++) {
-            if (copysign(1.0, msg->points[i].velocity) != copysign(1.0, msg->points[i - 1].velocity)) {
-                ranges_.emplace_back(start, i);
-                start = i;
+        for (std::size_t i = 1; i < msg->points.size(); ++i) {
+            if (std::copysign(1.0, msg->points[i].velocity) !=
+                std::copysign(1.0, msg->points[i - 1].velocity)) {
+                new_ranges.emplace_back(start, static_cast<int>(i));
+                start = static_cast<int>(i);
             }
         }
-        ranges_.emplace_back(start, msg->points.size());
-        auto next_goal = msg->points[ranges_[current_range_].second];
-        if (trajectory_.points.empty() || approached_) {
-            start_time_ = ros::Time::now().toSec();
-            ROS_INFO("restart timer");
-        }
+        new_ranges.emplace_back(start, static_cast<int>(msg->points.size()));
         trajectory_ = *msg;
-        if (final_approached_) {
-            visualization_.line_strip_.points.clear();
-        }
+        ranges_ = std::move(new_ranges);
+        current_range_ = 0;
+        car_index_ = lookahead_index_ = ranges_.front().first;
+        start_time_ = ros::Time::now().toSec();
+        longitude_output_ = longitude_perror_ = 0.0;
+        lookahead_gain_ = 1.0;
+        approached_ = final_approached_ = false;
+        visualization_.line_strip_.points.clear();
+    }
 
-        approached_ = false;
-        final_approached_ = false;
+    bool ValidRange() const {
+        if (current_range_ < 0 ||
+            static_cast<std::size_t>(current_range_) >= ranges_.size()) return false;
+        const auto range = ranges_[current_range_];
+        return range.first >= 0 && range.first < range.second &&
+            static_cast<std::size_t>(range.second) <= trajectory_.points.size();
+    }
+
+    void PublishNeutralCommand() {
+        ChassisCommand command;
+        command.target = tracking_object_;
+        command.throttle = 0.0;
+        command.steering = 0.0;
+        command_publisher_.publish(command);
     }
 
     inline double DistanceToTraj(int i, double x, double y) { return hypot(trajectory_.points[i].y - y, trajectory_.points[i].x - x); }
 
     void UpdateLookahead() {
-        if (trajectory_.points.empty()) return;    
+        if (!ValidRange()) return;    
 
         bool found_lookahead = false;   
         int start = ranges_[current_range_].first, end = ranges_[current_range_].second;
+        car_index_ = std::max(start, std::min(car_index_, end - 1));
+        lookahead_index_ = std::max(start, std::min(lookahead_index_, end - 1));
 
         double min_distance = FLT_MAX;   
         for (int i = car_index_; i < end; i++) {
@@ -256,6 +288,7 @@ class PurePursuit {
     }
 
     void SwitchRange() {
+        if (!ValidRange()) { approached_ = true; return; }
         int end = ranges_[current_range_].second;
         double approaching_distance = DistanceToTraj(end - 1, object_.x, object_.y);
         double tolerance = current_range_ == ranges_.size() - 1 ? 0.05 : approaching_tolerance_;
@@ -270,10 +303,11 @@ class PurePursuit {
                 std::cout << tracking_object_ << " - Goal reached" << std::endl;
             } else {
                 current_range_++;
+                car_index_ = lookahead_index_ = ranges_[current_range_].first;
                 end = ranges_[current_range_].second;
                 auto goal = trajectory_.points[end - 1];
-                double traj_length = DistanceToTraj(0, goal.x, goal.y);
-                lookahead_gain_ = std::min(traj_length / lookahead_distance_, 1.0);
+                double traj_length = DistanceToTraj(ranges_[current_range_].first, goal.x, goal.y);
+                lookahead_gain_ = std::max(0.1, std::min(traj_length / lookahead_distance_, 1.0));
                 std::cout << tracking_object_ << " - Approached, changing goal to: (" << goal.x << ", " << goal.y << ')' << std::endl;
             }
         }
@@ -300,14 +334,20 @@ class PurePursuit {
     }
 
     void Controller() {
+        if (!ValidRange() || lookahead_index_ < ranges_[current_range_].first ||
+            lookahead_index_ >= ranges_[current_range_].second) {
+            PublishNeutralCommand();
+            return;
+        }
         TrajectoryPoint &lookahead = trajectory_.points[lookahead_index_];
         auto lookahead_distance = DistanceToTraj(lookahead_index_, object_.x, object_.y);
+        if (lookahead_distance <= 1e-9) { PublishNeutralCommand(); return; }
         double sinx = sin(object_.yaw), cosx = cos(object_.yaw);
         double relative_x = cosx * (lookahead.x - object_.x) + sinx * (lookahead.y - object_.y);
         double relative_y = -sinx * (lookahead.x - object_.x) + cosx * (lookahead.y - object_.y);
-        double eta = atan2(relative_y, relative_x);
+        double alpha = atan2(relative_y, relative_x);
 
-        double delta = atan2(wheel_base_ * sin(eta), lookahead_distance / 2 + (lookahead.velocity > 0 ? lfw_ : lrv_) * cos(eta));
+        double delta = atan2(wheel_base_ * sin(alpha), lookahead_distance / 2 + (lookahead.velocity > 0 ? lfw_ : lrv_) * cos(alpha));
         double velocity = LongitudeController();
 
         ChassisCommand command;
@@ -318,18 +358,18 @@ class PurePursuit {
         command_publisher_.publish(command);
     }
 
-    void ControlCallback(const ros::TimerEvent &evt) {
-        if (!trajectory_.points.empty() && !approached_) {
-            SwitchRange();
-            UpdateLookahead();
-            Controller();
-        } else {
-            ChassisCommand command;
-            command.target = tracking_object_;
-            command.throttle = 0.0;
-            command.steering = 0.0;
-            command_publisher_.publish(command);
+    void ControlCallback(const ros::TimerEvent&) {
+        if (!pose_initialized_ || !ValidRange() || approached_) {
+            PublishNeutralCommand();
+            return;
         }
+        SwitchRange();
+        if (approached_ || !ValidRange()) {
+            PublishNeutralCommand();
+            return;
+        }
+        UpdateLookahead();
+        Controller();
     }
 };
 
