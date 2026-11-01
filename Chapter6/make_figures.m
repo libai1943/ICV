@@ -36,7 +36,7 @@ for car=1:count
  for k=1:nodes-1,for j=1:sub,at=(k-1)*sub+j;dense(:,at+1,car)=r.state(:,k,car)+(j/sub)*(r.state(:,k+1,car)-r.state(:,k,car));end,end
 end
 [squared,radius]=collision_vector(dense,task);clearance=min(sqrt(max(0,squared))-radius,[],2);time=linspace(0,r.horizon,nodes);
-f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');labels={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Full-geometry clearance'};units={'v (m/s)','\phi (rad)','jerk (m/s^3)','Clearance (m)'};
+f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');labels={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Full-geometry clearance'};units={'{\it v} (m/s)','\phi (rad)','{\it jerk} (m/s^3)','Clearance (m)'};
 for panel=1:4
  ax=axes(f,'Position',[.085+mod(panel-1,2)*.49,.62-floor((panel-1)/2)*.49,.38,.29]);hold(ax,'on');
  if panel<4
@@ -45,14 +45,14 @@ for panel=1:4
    plot(ax,time,values,'Color',colors(car,:),'LineWidth',1);
   end
  else,plot(ax,linspace(0,r.horizon,numel(clearance)),clearance,'k-','LineWidth',1);yline(ax,0,'k:');end
- xlabel(ax,'t (s)');ylabel(ax,units{panel});grid(ax,'on');box(ax,'off');text(ax,.5,-.34,labels{panel},'Units','normalized','HorizontalAlignment','center','FontSize',18);
+ xlabel(ax,'{\it t} (s)');ylabel(ax,units{panel});grid(ax,'on');box(ax,'off');text(ax,.5,-.34,labels{panel},'Units','normalized','HorizontalAlignment','center','FontSize',18);
 end
 saveplot(f,out,'fig06-06');
 methods={'asco','full','progressive','linearized'};names={'ASCO','Full NLP','Progressive','Linearized'};success=zeros(1,4);elapsed=nan(8,4);passed=false(8,4);
 for m=1:4,for n=1:8
  file=fullfile(root,sprintf('output/case_%02d_%s.json',n,methods{m}));assert(isfile(file),'Complete all benchmark cases before drawing the comparison.');entry=jsondecode(fileread(file));elapsed(n,m)=entry.wall_seconds;passed(n,m)=entry.success;
 end;success(m)=sum(passed(:,m));end
-f=figure('Color','w','Position',[50,50,1120,540],'Visible','off');ax=axes(f,'Position',[.07,.23,.40,.70]);bar(ax,success,'FaceColor',[.42,.61,.72]);set(ax,'XTick',1:4,'XTickLabel',{'ASCO','Full NLP','Prog.','Lin.'});ylim(ax,[0,8.7]);ylabel(ax,'Validated cases (out of 8)');grid(ax,'on');text(ax,.5,-.23,'(a) Success count','Units','normalized','HorizontalAlignment','center','FontSize',18);
+f=figure('Color','w','Position',[50,50,1120,540],'Visible','off');ax=axes(f,'Position',[.07,.23,.40,.70]);bar(ax,success,'FaceColor',[.42,.61,.72]);set(ax,'XTick',1:4,'XTickLabel',{'ASCO','Full NLP','Prog.','Lin.'});ylim(ax,[0,8.7]);ylabel(ax,'Accepted cases (out of 8)');grid(ax,'on');text(ax,.5,-.23,'(a) Accepted-plan count','Units','normalized','HorizontalAlignment','center','FontSize',18);
 ax=axes(f,'Position',[.57,.23,.40,.70]);hold(ax,'on');
 for m=1:4
  for n=1:8
@@ -61,7 +61,7 @@ for m=1:4
  end
  plot(ax,m+[-.18,.18],median(elapsed(:,m))*[1,1],'k-','LineWidth',1.5);
 end
-set(ax,'XTick',1:4,'XTickLabel',{'ASCO','Full NLP','Prog.','Lin.'});xlim(ax,[.5,4.5]);ylabel(ax,'Elapsed wall time (s)');grid(ax,'on');text(ax,.5,-.23,'(b) Runs and median; x denotes failure','Units','normalized','HorizontalAlignment','center','FontSize',18);saveplot(f,out,'fig06-07');
+set(ax,'XTick',1:4,'XTickLabel',{'ASCO','Full NLP','Prog.','Lin.'});xlim(ax,[.5,4.5]);ylabel(ax,'Elapsed wall time (s)');grid(ax,'on');text(ax,.5,-.23,'(b) Runtime; x marks failure','Units','normalized','HorizontalAlignment','center','FontSize',18);saveplot(f,out,'fig06-07');
 f=figure('Color','w','Position',[50,50,900,470],'Visible','off');ax=axes(f,'Position',[.12,.16,.83,.79]);hold(ax,'on');
 for m=[1,3]
  data=load(fullfile(root,sprintf('output/case_01_%s.mat',methods{m})));h=data.result.history;plot(ax,[h.outer_iteration],[h.loaded_collision_constraints],'-o','Color',colors(m*2,:),'DisplayName',names{m},'LineWidth',1.5);

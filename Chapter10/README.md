@@ -16,7 +16,7 @@ This is an unsaturated algebraic illustration. Actuator limits, anti-windup, der
 
 ## Imported ROS controller
 
-`ros_packages/pure_pursuit` contains the tracking node, and `ros_packages/sandbox_msgs` contains the required messages. The ROS source preserves the original incremental longitudinal controller, whose integral increment uses the **current error**. It therefore uses a different discrete integral convention from the explicit-Euler MATLAB illustration. Its recorded default integral gain is zero, so the choice of current or previous error contributes zero to that default integral term.
+`ros_packages/pure_pursuit` contains the tracking node, and `ros_packages/sandbox_msgs` contains the required messages. The chapter-local ROS source uses the same explicit forward Euler convention: the integral increment contains the previous error. This revises the imported current-error convention. The recorded default integral gain is zero, so this change leaves that default term unchanged. `self_test` also checks the algebra with nonzero integral gains and verifies the selected source expression. This is a numerical convention check, not a ROS build or hardware tracking test.
 
 Both chapter-local ROS packages are the same source snapshots included in Chapter 11. Their initial integration and exact upstream commit are recorded in [ros_packages/README.md](ros_packages/README.md). The existing per-file authors and package metadata are retained.
 

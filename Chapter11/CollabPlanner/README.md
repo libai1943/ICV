@@ -56,3 +56,7 @@ The original first-party name/date headers have been consolidated here.
 | `collab_planner/trajectory_nlp/collab_traj_optimizer_parallel.cpp` | Created | 2023/12/31 |
 | `collab_planner/trajectory_nlp/trajectory_nlp_config.h` | Modified | 2023/11/2 |
 | `collab_planner/visualization_plot.cpp` | Modified | 1/26/24 |
+
+## Book revision: explicit forward Euler integral
+
+The tracking node now uses the previous sample error in its incremental PI integral term. This is the documented change after the initial import. The same edit is maintained in both Chapters 10 and 11. Default zero-integral-gain behavior is unchanged; Chapter 10 includes an algebraic regression with nonzero gains. This revision has not been tested on a vehicle.

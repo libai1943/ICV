@@ -94,8 +94,8 @@ source "$HOME/exp_ws/devel/setup.bash"
 rosrun collab_planner keyboard_input
 ```
 
-Use the English keyboard prompts to select the formation task. The planner writes relative CSV log filenames in its process working directory. The imported tracking node preserves the current-error integral convention explained in [Chapter10/README.md](../Chapter10/README.md).
+Use the English keyboard prompts to select the formation task. The planner writes relative CSV log filenames in its process working directory. The chapter-local tracking node uses the explicit forward Euler integral convention explained in [Chapter10/README.md](../Chapter10/README.md).
 
 ## Verification scope
 
-The migration checked source differences, Python syntax, XML syntax, the Tinyproto archive hash, and an isolated inventory containing exactly the six package names listed above. Small package-manifest corrections are documented in `CollabPlanner/README.md`. ROS compilation, communication, Arduino upload, and vehicle execution were not performed in the review environment. The imported snapshot preserves the original runtime algorithms; the book's illustrative code and the source snapshot should be compared when applying later implementation refinements.
+The migration checked source differences, Python syntax, XML syntax, the Tinyproto archive hash, and an isolated inventory containing exactly the six package names listed above. Small package-manifest corrections are documented in `CollabPlanner/README.md`. ROS compilation, communication, Arduino upload, and vehicle execution were not performed in the review environment. The tracking integral increment has subsequently been aligned with the book's explicit forward Euler convention. Other illustrative robustness refinements in the book are identified separately from the imported runtime implementation.

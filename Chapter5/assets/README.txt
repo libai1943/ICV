@@ -1,0 +1,1 @@
+Figures 5.2–5.4 are vector concept diagrams. MATLAB copies these fixed diagrams and regenerates every numerical figure directly from saved trajectories. No trajectory is altered for visualization. The manuscript source package includes editable drawing scripts.

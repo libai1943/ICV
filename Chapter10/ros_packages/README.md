@@ -12,3 +12,7 @@ These are chapter-local copies of `pure_pursuit` and `sandbox_msgs` from the exp
 - Book repository: https://github.com/libai1943/ICV
 
 These packages are copied without algorithmic changes. The Chapter 11 experimental tree includes the same packages. Put only one copy of each package in a catkin workspace. The existing Chapter 10 MATLAB PID example has been preserved. ROS build and vehicle execution were not performed in the import environment.
+
+## Book revision: explicit forward Euler integral
+
+The tracking node now uses the previous sample error in its incremental PI integral term. This is the documented change after the initial import. The same edit is maintained in both Chapters 10 and 11. Default zero-integral-gain behavior is unchanged; Chapter 10 includes an algebraic regression with nonzero gains. This revision has not been tested on a vehicle.

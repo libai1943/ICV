@@ -292,7 +292,8 @@ class PurePursuit {
         }
         double sinx = sin(truth.yaw), cosx = cos(truth.yaw);
         double relative_x = cosx * (truth.x - object_.x) + sinx * (truth.y - object_.y);
-        longitude_output_ += longitude_kp_ * (relative_x - longitude_perror_) + longitude_ki_ * relative_x;
+        // Explicit forward Euler: integrate the previous sample error.
+        longitude_output_ += longitude_kp_ * (relative_x - longitude_perror_) + longitude_ki_ * longitude_perror_;
         longitude_perror_ = relative_x;
         longitude_output_ = std::min(std::max(longitude_output_, -0.25), 0.25);
         return longitude_output_;

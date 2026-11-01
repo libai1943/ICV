@@ -2,7 +2,12 @@ function distance=polygon_box_distance(box,polygon)
 % Euclidean polygon-to-box distance, including edge crossings.
 epsilon=1e-10;box=box+[-epsilon,epsilon,-epsilon,epsilon];
 corners=[box(1),box(3);box(2),box(3);box(2),box(4);box(1),box(4)];
-if any(inpolygon(corners(:,1),corners(:,2),polygon(:,1),polygon(:,2)))||any(polygon(:,1)>=box(1)&polygon(:,1)<=box(2)&polygon(:,2)>=box(3)&polygon(:,2)<=box(4))
+% Four-point ray crossing avoids repeated general-purpose polygon preprocessing.
+ends=polygon([2:end,1],:);dy=ends(:,2)-polygon(:,2);dy(abs(dy)<1e-30)=1;
+crosses=(polygon(:,2)>corners(:,2)')~=(ends(:,2)>corners(:,2)');
+intersection=polygon(:,1)+(ends(:,1)-polygon(:,1)).*(corners(:,2)'-polygon(:,2))./dy;
+inside=mod(sum(crosses&(corners(:,1)'<intersection),1),2)==1;
+if any(inside)||any(polygon(:,1)>=box(1)&polygon(:,1)<=box(2)&polygon(:,2)>=box(3)&polygon(:,2)<=box(4))
  distance=0;return
 end
 next=polygon([2:end,1],:);edge=next-polygon;

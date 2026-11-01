@@ -20,11 +20,11 @@ for style=1:2
  if style==1,name='fig07-01';else,name='fig01-03';end
  saveplot(f,out,name);
 end
-f=figure('Visible','off','Color','w','Position',[50,50,1080,780]);labels={'(a) Speed','(b) Steering angle','(c) Acceleration','(d) Steering rate'};units={'v (m/s)','\phi (rad)','a (m/s^2)','\omega (rad/s)'};
+f=figure('Visible','off','Color','w','Position',[50,50,1080,780]);labels={'(a) Velocity','(b) Steering angle','(c) Acceleration','(d) Steering rate'};units={'{\it v} (m/s)','\phi (rad)','{\it a} (m/s^2)','\omega (rad/s)'};
 for panel=1:4
  ax=axes(f,'Position',[.085+mod(panel-1,2)*.49,.62-floor((panel-1)/2)*.49,.38,.29]);hold(ax,'on');
  for i=1:nv,plot(ax,time,q(panel+3,:,i),'Color',colors(i,:),'LineWidth',.7);end
- xlabel(ax,'t (s)');ylabel(ax,units{panel});grid(ax,'on');text(ax,.5,-.34,labels{panel},'Units','normalized','HorizontalAlignment','center','FontSize',18);
+ xlabel(ax,'{\it t} (s)');ylabel(ax,units{panel});grid(ax,'on');text(ax,.5,-.34,labels{panel},'Units','normalized','HorizontalAlignment','center','FontSize',18);
 end
 saveplot(f,out,'fig07-02');
 hist=r.history;f=figure('Visible','off','Color','w','Position',[50,50,1080,510]);

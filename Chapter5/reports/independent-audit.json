@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "implementation": "Independent CSV reconstruction and NumPy polygon/point distances; no MATLAB validator calls. Reused cases require matching SHA-256 input hashes.",
+  "cases": [
+    {
+      "ICVs": 9,
+      "maximum_euler_defect": 6.88167772947016e-07,
+      "minimum_vehicle_clearance_m": 0.12961528993434657,
+      "minimum_boundary_clearance_m": 0.07875992441865587,
+      "corrected_interval_clearance_m": 0.052308143404181176,
+      "maximum_simultaneous_central_occupancy_at_nodes": 4,
+      "maximum_steering_rad": 0.166043485355842,
+      "approach_widths_m": [
+        5.6,
+        5.8,
+        5.5,
+        5.9,
+        5.7
+      ],
+      "status": "PASS",
+      "csv_sha256": "7db10b6fed5db9da289a04b81716848525c9c67839cf1645e966d4cd50fd6998",
+      "scene_sha256": "d23cf8dcffd7bf28922e48483ef74fb59b837c82dde9ae59e2298b9bfd1a9f5c"
+    },
+    {
+      "ICVs": 12,
+      "maximum_euler_defect": 6.87925161296393e-07,
+      "minimum_vehicle_clearance_m": 0.13526982692839917,
+      "minimum_boundary_clearance_m": 0.04113617425081073,
+      "corrected_interval_clearance_m": 0.0095692502508445,
+      "maximum_simultaneous_central_occupancy_at_nodes": 4,
+      "maximum_steering_rad": 0.409172388496841,
+      "approach_widths_m": [
+        5.6,
+        5.8,
+        5.5,
+        5.9,
+        5.7
+      ],
+      "status": "PASS",
+      "csv_sha256": "690ba33a6973def07d409661572864fc7069650c725590c71fc96a8702a55ecb",
+      "scene_sha256": "dfda97efadaca76ad1018b95894a82365eab269a0279ee41c6066d23a3e66713"
+    },
+    {
+      "ICVs": 15,
+      "csv_sha256": "b39cefd1beb4dfd8f8b33e73391422725a84f56043f9d76c7bc11f4286706d7a",
+      "scene_sha256": "d413e221cd03759361e8116b9630dedf25d759bc5da352312b13e9b7f1f37faa",
+      "maximum_euler_defect": 6.86295572713018e-07,
+      "minimum_vehicle_clearance_m": 0.12479310510518582,
+      "minimum_boundary_clearance_m": 0.04649610589292652,
+      "corrected_interval_clearance_m": 0.015002993579422738,
+      "maximum_simultaneous_central_occupancy_at_nodes": 5,
+      "maximum_steering_rad": 0.406868951582398,
+      "approach_widths_m": [
+        5.6,
+        5.8,
+        5.5,
+        5.9,
+        5.7
+      ],
+      "status": "PASS"
+    }
+  ]
+}

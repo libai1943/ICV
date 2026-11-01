@@ -28,7 +28,7 @@ for item={{-g.LR,0,'r'},{0,g.LW,'w'},{g.LW,g.LW+g.LF,'f'}}
  z=item{1};dim(ax,T([z{1};1.86]),T([z{2};1.86]));
  label(ax,T([(z{1}+z{2})/2;2.18]),['L_{',z{3},',i}'],22);
 end
-dim(ax,T([4.66;-g.LB/2]),T([4.66;g.LB/2]));label(ax,T([5.08;0]),'L_{b,i}',22);
+dim(ax,T([4.66;-g.LB/2]),T([4.66;g.LB/2]));label(ax,T([5.65;0]),'L_{b,i}',22);
 for y=[-g.LB/2,g.LB/2],line2(ax,T([3.9;y]),T([4.82;y]),[.55,.55,.55],.7,':');end
 O=[-2.7;-2.7];arrow(ax,O,[5.4;O(2)],[.25,.25,.25],.9);arrow(ax,O,[O(1);3.5],[.25,.25,.25],.9);
 label(ax,[5.65;O(2)],'X',21);label(ax,[O(1);3.8],'Y',21);label(ax,O+[-.18;-.2],'O',20);
@@ -217,14 +217,28 @@ L=g.LW+g.LF+g.LR;R=[cos(q(3)),-sin(q(3));sin(q(3)),cos(q(3))];V=(R*[-g.LR+.29*L,
 patch(ax,V(:,1),V(:,2),.6+.4*color,'EdgeColor',color,'LineWidth',1);
 end
 function label(ax,p,s,sz)
-% Explicit upright geometric parameters, italic running index and state symbols.
-s=regexprep(s,'L_\{([rwfb]),i\}','{\\rm L}_{\\rm $1,\\it i}');
-s=regexprep(s,'^r_i','{\\rm r}_{\\it i}');
-s=regexprep(s,'^c_i','{\\bf c}_{\\it i}');
-s=strrep(s,'(x_i, y_i)','(\it x_i, y_i\rm)');
-if startsWith(s,'v'),s=['\it ',s];end
-s=strrep(s,'\phi_i','\phi_{\it i}');s=strrep(s,'\theta_i','\theta_{\it i}');s=strrep(s,'\rho_i','\rho_{\it i}');
-text(ax,p(1),p(2),s,'FontName','Times New Roman','FontSize',sz,'HorizontalAlignment','center','VerticalAlignment','middle','Color','k','BackgroundColor','none','Interpreter','tex');
+% Composite mathematical label with tight, measured typesetting.
+% Fixed lengths/radii upright; variable vectors bold italic; indices italic.
+raw=strtrim(strrep(s,'\it ',''));
+token=regexp(raw,'^(L|r|c|v|x|y|\\phi|\\theta|\\rho)_\{?([^}]+)\}?$','tokens','once');
+if ~isempty(token) && ~contains(raw,'^')
+ base=token{1};sub=token{2};base=strrep(base,'\phi','φ');base=strrep(base,'\theta','θ');base=strrep(base,'\rho','ρ');
+ angle='italic';weight='normal';if ismember(base,{'L','r'}),angle='normal';end;if strcmp(base,'c'),weight='bold';end
+ h=text(ax,p(1),p(2),'','Units','data');set(h,'Units','points');xy=get(h,'Position');delete(h);
+ runs={base,'',sz,angle,weight,0};
+ if endsWith(sub,'i')
+  head=sub(1:end-1);runs(end+1,:)={head,'',.70*sz,'normal','normal',-.24*sz};runs(end+1,:)={'i','',.70*sz,'italic','normal',-.24*sz};
+ else,runs(end+1,:)={sub,'',.70*sz,'normal','normal',-.24*sz};end
+ widths=zeros(size(runs,1),1);handles=gobjects(size(runs,1),1);
+ for j=1:size(runs,1)
+  handles(j)=text(ax,0,0,runs{j,1},'Units','points','FontName','Times New Roman','FontSize',runs{j,3},'FontAngle',runs{j,4},'FontWeight',runs{j,5},'Interpreter','none','VerticalAlignment','baseline','BackgroundColor','none');
+  ext=get(handles(j),'Extent');widths(j)=ext(3);
+ end
+ x=xy(1)-sum(widths)/2;
+ for j=1:numel(handles),set(handles(j),'Position',[x,xy(2)-.20*sz+runs{j,6},0]);x=x+widths(j);end
+else
+ text(ax,p(1),p(2),s,'FontName','Times New Roman','FontSize',sz,'HorizontalAlignment','center','VerticalAlignment','middle','Color','k','BackgroundColor','none','Interpreter','tex');
+end
 end
 function line2(ax,a,b,c,w,st)
 plot(ax,[a(1),b(1)],[a(2),b(2)],st,'Color',c,'LineWidth',w);

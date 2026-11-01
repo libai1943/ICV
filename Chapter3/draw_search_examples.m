@@ -20,7 +20,7 @@ text(ax,3,3.65,'Cell (2,3) unavailable at k = 2, 3','HorizontalAlignment','cente
 text(ax,1,1.1,'S','HorizontalAlignment','center','FontSize',20);text(ax,5,1.1,'G','HorizontalAlignment','center','FontSize',20);annotation(f,'textbox',[.04,.02,.43,.07],'String','(a) Spatial corridor','EdgeColor','none','HorizontalAlignment','center','FontName','Times New Roman','FontSize',21);
 ax=axes(f,'Position',[.59,.22,.35,.70]);hold(ax,'on');for k=0:6,plot(ax,1:5,k*ones(1,5),'.','Color',[.75,.75,.75],'MarkerSize',10);end
 plot(ax,p(:,2),0:c,'-o','Color',blue,'LineWidth',1.8,'MarkerFaceColor','w','MarkerSize',6);plot(ax,[3,3],[2,3],'x','Color',gold,'LineWidth',2,'MarkerSize',12);
-xlim(ax,[.5,5.5]);ylim(ax,[-.3,6.4]);xticks(ax,1:5);yticks(ax,0:6);xlabel(ax,'Column');ylabel(ax,'Time index k');box(ax,'off');set(ax,'FontSize',17);
+xlim(ax,[.5,5.5]);ylim(ax,[-.3,6.4]);xticks(ax,1:5);yticks(ax,0:6);xlabel(ax,'Column');ylabel(ax,'Time index {\it k}');box(ax,'off');set(ax,'FontSize',17);
 annotation(f,'textbox',[.54,.02,.43,.07],'String','(b) Space-time slice at row 2','EdgeColor','none','HorizontalAlignment','center','FontName','Times New Roman','FontSize',21);savefigure(f,out,'fig03-04');
 empty=struct('vertex',zeros(0,3),'edge',zeros(0,5));map=false(3);starts=[2,1;2,3];goals=[2,3;2,1];root=cell(1,2);
 for i=1:2,[root{i},~]=space_time_astar(map,starts(i,:),goals(i,:),empty,10);end

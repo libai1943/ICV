@@ -27,20 +27,30 @@ make_figures;
 
 ## Formulation and initialization
 
-The states are `[x;y;theta;v;phi;a]`, with controls `[jerk;omega]`, rear-axle position, SI units, and radians. Two auxiliary rows represent the enclosing-disc center. The tasks use 241 nodes over 120 s, forward motion, passenger-car dimensions, and a 0.25 m nominal separation margin. Approaches range from 6.8 to 8.0 m in width. Scenario seeds change their angles slightly while retaining the same five-arm construction.
+The physical states are `[x;y;theta;v;phi;a]`, with controls `[jerk;omega]`, rear-axle position, SI units, and radians. Eight auxiliary rows locate four overlapping covering discs. A 4.689 m by 1.942 m vehicle is covered by four discs of radius approximately 1.134 m. Each task uses 241 nodes over 120 s, forward motion, and a 0.12 m nominal geometric margin.
+
+All five curved branches carry opposing traffic. Their widths are `[5.6,5.8,5.5,5.9,5.7]` m; the central region has elliptical semiaxes 12 m and 9 m. Each road is only moderately wider than two vehicle bodies (3.884 m together). Fixed scenario seeds perturb branch angles while retaining unequal widths, strong bends, oblique approaches, and nonconvex roadside land blocks. Both arrivals and departures use every branch.
 
 `simulate_sfm` produces a heuristic proposal; it is not guaranteed to reach the assigned endpoints. The recorded SFM proposals did not do so. `prepare_reference` therefore constructs curved geometric routes with deterministic temporal reservations. The accepted experiments evaluate this complete safeguarded pipeline, not SFM alone. The MATLAB routines are independently implemented and do not invoke the research Python optimizer.
 
-`construct_corridors` checks complete candidate boxes against polygonal obstacles, including their interiors. It decreases the expansion increment near oblique boundaries. Relative corridors are formed in relative-center space. `optimize_trajectories` retains the corridor constraints and penalizes nonlinear forward Euler and center-linking residuals with increasing weights; optional nonlinear feasibility restoration retains the same physical constraints. Failed intermediate solver calls remain in the history.
+`construct_corridors` checks complete candidate boxes against polygonal obstacles, including their interiors. It starts with a positive box around each center and refines the expansion increment near oblique boundaries. Relative corridors are formed for individual covering-disc pairs.
+
+Node feasibility alone is insufficient. Additional separating-plane constraints cover every intervening interval: a fixed heading-increment bound gives a rotational chord-deviation allowance, and both ends of each relative-center chord must lie on the safe side of its plane. Pairs may be screened only when their complete endpoint boxes and this allowance guarantee separation. These constraints retain an affine form within each outer iteration.
+
+`optimize_trajectories` retains these hard constraints and penalizes nonlinear forward Euler and center-linking residuals with increasing weights. A final nonlinear feasibility-restoration step retains the same physical constraints. IPOPT convergence and numerical feasibility are recorded separately: a finite, hard-feasible intermediate iterate may update the reference even if IPOPT reaches an iteration limit. An experimental trajectory is accepted only after the independent checks pass.
 
 ## Validation and recorded results
 
-All three recorded fleet sizes passed the independent validator. Maximum Euler defects were below 2.4e-6, and the conservative interval clearance bounds exceeded 0.13 m. These are numerical feasibility demonstrations, not global-optimality or real-time claims.
+The recorded 9-, 12-, and 15-ICV tasks pass the independent validator. See `reports/experiment_report.json` for actual residuals, clearances, runtimes, initialization diagnostics, and all intermediate solver statuses. These examples demonstrate numerical feasibility; they do not establish global optimality, real-time performance, or exhaustive reliability over random road networks.
 
-`validate_trajectories` checks every native Euler update, boundary state, control bound, vehicle pair, and polygon. Between nodes it checks the piecewise-linear rear-axle/heading reconstruction with 20 subdivisions and a speed-based clearance correction. `audit_control_bounds` checks that reconstruction and the interval controls. This geometric interpolation does not replace the forward Euler dynamics and is not a closed-loop tracking certificate.
+`validate_trajectories` checks every native Euler update, boundary state, control bound, covering-disc pair, and polygon. Between nodes it checks the piecewise-linear rear-axle/heading reconstruction with 80 subdivisions and a speed-based conservative clearance correction. `audit_control_bounds` checks that reconstruction and its interval controls. This geometric interpolation does not replace the forward Euler dynamics and is not a closed-loop tracking certificate. An independent NumPy implementation also verifies the exported trajectory files.
 
 MAT files retain initial references, trajectories, solver histories, and validation. CSV files use explicit SI-unit column names. JSON includes failed intermediate iterations. The plot generator requires an accepted saved trajectory; it never manufactures an experimental solution. `output/figures` contains vector PDFs and PNG previews, while `reports` preserves the recorded numerical data independently of subsequent runs.
 
 The vehicle body contains a triangular forward marker; colors, Times New Roman labels, and subfigure captions follow the companion chapters. Figure 5.1 is a credited real photograph in the manuscript, not a simulation output.
 
 References: Bu et al., IEEE TITS (2025), DOI 10.1109/TITS.2025.3597472; Li et al., IEEE TITS (2022), DOI 10.1109/TITS.2021.3109011.
+
+For the optional final print-size treatment of subfigure labels, run `python ../tools/typeset_figures.py` from this directory after installing PyMuPDF and specifying an installed Times New Roman font if necessary. The geometry remains vector content; this step is independent of optimization.
+
+`resume_experiment(N)` resumes a saved, hard-feasible checkpoint that already contains the whole-interval guards. A fresh `run_experiments` run remains the canonical reproduction command.

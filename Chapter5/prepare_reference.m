@@ -2,21 +2,22 @@ function [reference,diagnostic]=prepare_reference(scene,sfm)
 % Route-reservation fallback makes the initializer endpoint-compatible.
 % It is declared separately from SFM: local repulsion does not resolve deadlock.
 count=size(scene.start,2);nodes=scene.nodes;time=linspace(0,scene.horizon,nodes);fine=linspace(0,scene.horizon,4*nodes);offset=(scene.geometry.LW+scene.geometry.LF-scene.geometry.LR)/2;
-radius=hypot(scene.geometry.LW+scene.geometry.LF+scene.geometry.LR,scene.geometry.LB)/2;reference=zeros(10,nodes,count);occupied=zeros(2,numel(fine),count);delays=zeros(1,count);
+[radius,offsets]=disc_geometry(scene);reference=zeros(8+2*numel(offsets),nodes,count);occupied=zeros(2,numel(fine),numel(offsets),count);delays=zeros(1,count);
 for car=1:count
  route=scene.routes{car};arc=[0,cumsum(vecnorm(diff(route,1,2)))];duration=max(30,1.9*arc(end)/3.8);found=false;
  for delay=0:1:(scene.horizon-duration-1)
-  z=timed_route(route,arc,fine,delay,duration,scene,car);centers=z(1:2,:)+offset*[cos(z(3,:));sin(z(3,:))];
+  z=timed_route(route,arc,fine,delay,duration,scene,car);centers=disc_centers(z,scene);
   safe=true;
   for other=1:car-1
-   if min(vecnorm(centers-occupied(:,:,other)))<2*radius+scene.margin+.25,safe=false;break;end
+   for da=1:numel(offsets),for db=1:numel(offsets),if min(vecnorm(centers(:,:,da)-occupied(:,:,db,other)))<2*radius+.02,safe=false;end;end;end
+   if ~safe,break;end
   end
   if safe,found=true;break;end
  end
- assert(found,'Route reservation exhausted the finite horizon; increase scene.horizon.');
- delays(car)=delay;occupied(:,:,car)=centers;z=timed_route(route,arc,time,delay,duration,scene,car);
+ assert(found,'Route reservation exhausted the horizon for ICV %d.',car);
+ delays(car)=delay;occupied(:,:,:,car)=centers;z=timed_route(route,arc,time,delay,duration,scene,car);
  reference(1:6,:,car)=z;reference(7,:,car)=[diff(z(6,:))/mean(diff(time)),0];reference(8,:,car)=[diff(z(5,:))/mean(diff(time)),0];
- reference(9:10,:,car)=z(1:2,:)+offset*[cos(z(3,:));sin(z(3,:))];
+ centers=disc_centers(z,scene);for d=1:numel(offsets),reference(7+2*d:8+2*d,:,car)=centers(:,:,d);end
 end
 diagnostic=struct('sfm_terminal_position_errors',vecnorm(squeeze(sfm(1:2,end,:))-scene.goal(1:2,:)),'fallback','Deterministic route-reservation initializer; original SFM proposal retained for inspection.','entry_delays',delays);
 end
