@@ -16,7 +16,7 @@ for panel=1:numel(targets)
   end
  end
  for i=1:size(book.state,3),q=book.state(:,k,i);q(1)=q(1)-10*book.time(k);BookDrawVehicle(ax,q,book.geometry(i),colors(i,:),i,9);end
- text(ax,.5,-.38,sprintf('(%c) t = %.2f s',96+panel,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',16);ylabel(ax,'y (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xmin/20)*20:20:floor(xmax/20)*20);box(ax,'off');
+ text(ax,.5,-.38,sprintf('(%c) {\\it t} = %.2f s',96+panel,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',16);ylabel(ax,'y (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xmin/20)*20:20:floor(xmax/20)*20);box(ax,'off');
 end
 xl=xlabel(ax,'Longitudinal position in a frame traveling at 10 m/s (m)');set(xl,'Units','normalized','Position',[.5,-.75,0]);BookPlotStyle(fig);set(findall(fig,'Type','axes'),'FontSize',13);
 exportgraphics(fig,fullfile(out,'lane_change_snapshots.pdf'),'ContentType','vector');exportgraphics(fig,fullfile(out,'lane_change_snapshots.png'),'Resolution',300);close(fig);

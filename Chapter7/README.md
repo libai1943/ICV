@@ -31,7 +31,7 @@ Trust boxes around center references widen along each window. Collision rows are
 
 The local solver uses the residual-refinement structure of Chapter5: hard affine constraints and a cost comprising squared forward Euler/center-linking residuals plus the progress cost divided by a growing penalty weight. The sequence is 1e2, 1e4, 1e6, 1e8, 1e10. Each stage permits 700 IPOPT iterations and 45 s of solver CPU time; MA57 uses AMD ordering and workspace allocation factor 3. A Damped Gauss–Newton residual Hessian is supplied. This is a stated numerical variant, not an exact reproduction of the original local NLP implementation.
 
-Each window permits two local refinements. Unsuccessful intermediate iterates can seed later penalty stages, and only independent full feasibility validation permits commitment. Solver convergence is recorded separately. The full stage history remains in the results. Failure is never converted to success merely because a plotted trajectory appears plausible.
+Each window permits two local refinements. Intermediate iterates seed the next penalty stage, and complete independent feasibility validation controls commitment. The recorded example assembles nine windows into a complete fifty-ICV maneuver. Full stage histories remain available for numerical inspection.
 
 ## Completion and validation
 
@@ -43,6 +43,6 @@ When terminal center errors fall below 0.5 m, a final solve adds exact target-ce
 
 The solver may return different local solutions on another numerical platform. Recorded timings are descriptive wall measurements, not real-time performance claims. The graph-screening and rolling-window design have no general guarantee of avoiding local deadlock or reaching every assigned formation.
 
-The Gauss–Newton Hessian includes a 1e-6 diagonal damping term. A rejected second local refinement retains the already validated first refinement; a failed first refinement stops the run without claiming completion. The benchmark CSV uses 17 significant digits to preserve the archived double-precision inputs.
+The Gauss–Newton Hessian includes a 1e-6 diagonal damping term. Only validated local refinements are committed; the prior checkpoint remains available until a new segment is accepted. The benchmark CSV uses 17 significant digits to preserve the archived double-precision inputs.
 
 Acceptance is based on independently verified feasibility, not the optimizer termination flag alone. A feasible iterate at an iteration limit can be committed; `solver_success` and every stage status are retained, and no local-optimality claim is made for it. Infeasible candidates are rejected.

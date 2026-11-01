@@ -1,7 +1,7 @@
 function report=draw_search_examples(out)
 %DRAW_SEARCH_EXAMPLES Figures from the accompanying search algorithms.
 set(groot,'defaultAxesFontName','Times New Roman','defaultTextFontName','Times New Roman','defaultTextInterpreter','tex');
-blue=[.10,.36,.72];gold=[.89,.56,.10];map=false(9,12);map(2:7,6)=true;map(5,6)=false;map(7,8:10)=true;start=[2,2];goal=[8,11];
+blue=[.10,.36,.72];gold=[0,.58,.66];map=false(9,12);map(2:7,6)=true;map(5,6)=false;map(7,8:10)=true;start=[2,2];goal=[8,11];
 f=figure('Color','w','Position',[50,50,1100,480],'Visible','off');
 for panel=1:2
  ax=axes(f,'Position',[.04+(panel-1)*.5,.16,.43,.80]);hold(ax,'on');gridmap(ax,map);conn=4*panel;[p,c,e]=astar_grid(map,start,goal,conn,true);
@@ -15,7 +15,7 @@ map=true(3,5);map(2,:)=false;C=struct('vertex',[2,3,2;2,3,3],'edge',zeros(0,5));
 report.space_time=struct('path',p,'arrival_time',c,'waits',2,'forbidden_vertices',C.vertex);
 f=figure('Color','w','Position',[50,50,1100,480],'Visible','off');
 ax=axes(f,'Position',[.04,.22,.43,.70]);hold(ax,'on');gridmap(ax,map);
-plot(ax,[1,5],[2,2],'-o','Color',blue,'LineWidth',1.6,'MarkerSize',5);patch(ax,[2.5,3.5,3.5,2.5],[1.5,1.5,2.5,2.5],[.97,.88,.71],'FaceAlpha',.65,'EdgeColor',gold,'LineWidth',1.1);
+plot(ax,[1,5],[2,2],'-o','Color',blue,'LineWidth',1.6,'MarkerSize',5);patch(ax,[2.5,3.5,3.5,2.5],[1.5,1.5,2.5,2.5],[.80,.93,.94],'FaceAlpha',.65,'EdgeColor',gold,'LineWidth',1.1);
 text(ax,3,3.65,'Cell (2,3) unavailable at k = 2, 3','HorizontalAlignment','center','FontSize',18);
 text(ax,1,1.1,'S','HorizontalAlignment','center','FontSize',20);text(ax,5,1.1,'G','HorizontalAlignment','center','FontSize',20);annotation(f,'textbox',[.04,.02,.43,.07],'String','(a) Spatial corridor','EdgeColor','none','HorizontalAlignment','center','FontName','Times New Roman','FontSize',21);
 ax=axes(f,'Position',[.59,.22,.35,.70]);hold(ax,'on');for k=0:6,plot(ax,1:5,k*ones(1,5),'.','Color',[.75,.75,.75],'MarkerSize',10);end

@@ -15,7 +15,7 @@ for style=1:2
    if style==2,last=min(K,k+10);plot(ax,q(1,k:last,i),q(2,k:last,i),'--','Color',.22+.78*colors(i,:),'LineWidth',.55);end
   end
   for i=1:nv,BookDrawVehicle(ax,q(:,k,i),t.geometry,colors(i,:),[],7);end
-  axis(ax,'off');text(ax,mean(range(1:2)),range(3)-.07*diff(range(3:4)),sprintf('(%c) t = %.1f s',96+panel,time(k)),'HorizontalAlignment','center','FontSize',18);
+  axis(ax,'off');text(ax,mean(range(1:2)),range(3)-.07*diff(range(3:4)),sprintf('(%c) {\\it t} = %.1f s',96+panel,time(k)),'HorizontalAlignment','center','FontSize',18);
  end
  if style==1,name='fig07-01';else,name='fig01-03';end
  saveplot(f,out,name);
@@ -23,7 +23,7 @@ end
 f=figure('Visible','off','Color','w','Position',[50,50,1080,780]);labels={'(a) Velocity','(b) Steering angle','(c) Acceleration','(d) Steering rate'};units={'{\it v} (m/s)','\phi (rad)','{\it a} (m/s^2)','\omega (rad/s)'};
 for panel=1:4
  ax=axes(f,'Position',[.085+mod(panel-1,2)*.49,.62-floor((panel-1)/2)*.49,.38,.29]);hold(ax,'on');
- for i=1:nv,plot(ax,time,q(panel+3,:,i),'Color',colors(i,:),'LineWidth',.7);end
+ for i=1:nv,if panel>=3,values=q(panel+3,:,i);values(end)=values(end-1);stairs(ax,time,values,'Color',colors(i,:),'LineWidth',.7);else,plot(ax,time,q(panel+3,:,i),'Color',colors(i,:),'LineWidth',.7);end,end
  xlabel(ax,'{\it t} (s)');ylabel(ax,units{panel});grid(ax,'on');text(ax,.5,-.34,labels{panel},'Units','normalized','HorizontalAlignment','center','FontSize',18);
 end
 saveplot(f,out,'fig07-02');

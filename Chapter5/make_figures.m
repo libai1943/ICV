@@ -2,12 +2,12 @@ function make_figures()
 root=fileparts(mfilename('fullpath'));addpath(fullfile(root,'common'));BookPlotStyle();out=fullfile(root,'output/figures');if ~isfolder(out),mkdir(out);end
 chosen=15;
 data=load(fullfile(root,sprintf('output/case_%02d.mat',chosen)));result=data.result;assert(result.success,'Only validated trajectories may be plotted as solutions.');scene=result.scene;states=result.trajectory;colors=[BookPalette();.30,.57,.73;.45,.66,.48;.72,.54,.25;.65,.38,.41;.51,.45,.65];
-% 5.1 is a credited real photograph in the manuscript, not a simulation.
+% The chapter opens with a sourced urban-road discussion.
 % Concept diagrams are editable vector artwork supplied with the project.
 for number=2:4,copyfile(fullfile(root,'assets',sprintf('fig05-%02d.pdf',number)),out);end
 % 5.5: illustrative timing, explicitly not a measured throughput experiment.
 [f,ax]=panel(1050,460);axis(ax,'normal');axis(ax,[0,32,.3,3.7]);set(ax,'YTick',1:3,'YTickLabel',{'Batch 3','Batch 2','Batch 1'},'XTick',0:5:30);xlabel(ax,'Illustrative time');hold(ax,'on');
-stages={'Preparation','Reservation','Traversal','Cruising'};c=[.87,.88,.89;.80,.87,.93;.54,.71,.82;.85,.80,.66];
+stages={'Preparation','Reservation','Traversal','Cruising'};c=[.88,.94,.96;.68,.82,.91;.43,.70,.80;.64,.84,.82];
 for row=1:3
  shift=(3-row)*5;edges=[0,5,10,16,21]+shift;
  for k=1:4
@@ -32,7 +32,7 @@ for panelIndex=1:6
   BookDrawVehicle(ax,states(:,k,car),scene.geometry,colors(car,:),[],6);
  end
  axis(ax,'off');span=limits(2)-limits(1);x=limits(1)+.06*span;y=limits(3)+.07*span;plot(ax,x+[0,bar],[y,y],'k-','LineWidth',1.1);text(ax,x+bar/2,y+.04*span,sprintf('%d m',bar),'FontSize',12,'HorizontalAlignment','center');
- text(ax,.5,-.035,sprintf('(%c) t = %.1f s',96+panelIndex,(k-1)*dt),'Units','normalized','FontSize',18,'HorizontalAlignment','center');
+ text(ax,.5,-.035,sprintf('(%c) {\\it t} = %.1f s',96+panelIndex,(k-1)*dt),'Units','normalized','FontSize',18,'HorizontalAlignment','center');
 end
 save_plot(f,out,'fig05-06');
 % 5.9: enlarged central interaction, with true steering and complete trajectories.
@@ -43,13 +43,13 @@ for car=1:chosen
  BookDrawVehicle(ax,states(:,k,car),scene.geometry,colors(car,:),[],8);
 end
 axis(ax,'off');plot(ax,[-21,-16],[-15,-15],'k-','LineWidth',1.2);text(ax,-18.5,-13.7,'5 m','HorizontalAlignment','center','FontSize',17);
-text(ax,-21,16,sprintf('t = %.1f s; %d ICVs in the central region',(k-1)*dt,max(occupancy)),'FontSize',17,'HorizontalAlignment','left');
+text(ax,-21,16,sprintf('{\\it t} = %.1f s; %d ICVs in the central region',(k-1)*dt,max(occupancy)),'FontSize',17,'HorizontalAlignment','left');
 save_plot(f,out,'fig05-09');
 % 5.7: actual state/control profiles and independent clearance.
 f=figure('Color','w','Position',[50,50,1080,750],'Visible','off');time=linspace(0,scene.horizon,scene.nodes);captions={'(a) Velocity','(b) Steering angle','(c) Jerk','(d) Full-geometry clearance'};units={'{\it v} (m/s)','\phi (rad)','{\it jerk} (m/s^3)','Clearance (m)'};rows=[4,5,7];
 for index=1:4
  ax=axes(f,'Position',[.085+mod(index-1,2)*.49,.62-floor((index-1)/2)*.49,.38,.29]);hold(ax,'on');
- if index<4,for car=1:chosen,plot(ax,time,states(rows(index),:,car),'Color',colors(car,:),'LineWidth',1);end
+ if index<4,for car=1:chosen,if index==3,values=states(7,:,car);values(end)=values(end-1);stairs(ax,time,values,'Color',colors(car,:),'LineWidth',1);else,plot(ax,time,states(rows(index),:,car),'Color',colors(car,:),'LineWidth',1);end,end
  else,plot(ax,linspace(0,scene.horizon,numel(result.validation.clearance)),result.validation.clearance,'Color',[.2,.2,.2],'LineWidth',1);yline(ax,0,'k:');end
  xlabel(ax,'{\it t} (s)');ylabel(ax,units{index});grid(ax,'on');box(ax,'off');text(ax,.5,-.34,captions{index},'Units','normalized','HorizontalAlignment','center','FontSize',18);
 end

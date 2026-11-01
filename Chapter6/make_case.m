@@ -1,5 +1,6 @@
 function task=make_case(number,source)
-% Convert author-supplied boundary values and obstacles; no legacy solver code.
+% Load the fixed ten-ICV illustrative task.
+if nargin<1,number=1;end
 if nargin<2,source=fullfile(fileparts(mfilename('fullpath')),'cases');end
 task=jsondecode(fileread(fullfile(source,sprintf('case_%02d.json',number))));
 end

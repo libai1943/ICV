@@ -4,7 +4,7 @@ if nargin==0,out=fullfile(fileparts(mfilename('fullpath')),'output');end
 if ~isfolder(out),mkdir(out);end
 set(groot,'defaultAxesFontName','Times New Roman','defaultTextFontName','Times New Roman', ...
  'defaultAxesFontSize',16,'defaultTextFontSize',18,'defaultTextInterpreter','tex');
-g=struct('LW',2.8,'LF',.96,'LR',.929,'LB',1.942);blue=[.10,.36,.72];teal=[0,.58,.66];gold=[.91,.65,.08];
+g=struct('LW',2.8,'LF',.96,'LR',.929,'LB',1.942);blue=[.10,.36,.72];teal=[0,.58,.66];gold=[0,.58,.66];
 % 2.1: physical wheels, equivalent axle-center wheels, and complete angle rays.
 [f,ax]=canvas(1000,760,[-3.5,6.0,-3.4,5.5]);q=[0;0;.48];phi=.38;
 R=[cos(q(3)),-sin(q(3));sin(q(3)),cos(q(3))];T=@(v)R*v;
@@ -54,6 +54,7 @@ line2(ax,T([-1.2;0]),T([4.4;0]),[.4,.4,.4],.8,'-.');line2(ax,P,C,[.2,.2,.2],1.1,
 plot(ax,[P(1),Q(1),C(1)],[P(2),Q(2),C(2)],'k.','MarkerSize',17);
 label(ax,T([-.25;-.4]),'P',22);label(ax,T([g.LW+.1;-.4]),'Q',22);label(ax,C+[0;.35],'C',22);
 arrow(ax,P,T([1.8;0]),blue,1.4);label(ax,T([1.1;-.36]),'v_i',21);
+wheel(ax,P,ang,true);
 w=R*[cos(phi);sin(phi)];wheel(ax,Q,ang+phi,true);arrow(ax,Q,Q+1.9*w,blue,1.4);label(ax,Q+2.2*w,'v_{Q,i}',21);
 arc(ax,Q,1.15,ang,ang+phi,[.2,.2,.2]);label(ax,Q+1.4*[cos(ang+phi/2);sin(ang+phi/2)],'\phi_i',21);
 dim(ax,T([-.57;0]),T([-.57;rho]));label(ax,T([-1.03;rho/2]),'\rho_i',22);
@@ -90,7 +91,7 @@ for panel=1:2
  if panel==1
   p=[1.1,1.3];name='(a) Point inside';
  else,p=[-2.1,.4];name='(b) Point outside';end
- patch(ax,P(:,1),P(:,2),[.91,.94,.96],'EdgeColor',blue,'LineWidth',1.3);
+ patch(ax,P(:,1),P(:,2),[.87,.95,.96],'EdgeColor',teal,'LineWidth',1.3);
  for j=1:size(P,1),line2(ax,p',P(j,:)',[.45,.45,.45],.8,'--');label(ax,P(j,:)'+.25*(P(j,:)'-[1.1;1.3]),sprintf('Q_%d',j),18);end
  plot(ax,p(1),p(2),'k.','MarkerSize',16);label(ax,p'+[0;-.32],'p',19);label(ax,[.45;-.85],name,17);
 end
@@ -130,7 +131,7 @@ export(f,out,'fig02-05');
 seeds=[-5,-3.3;-2.6,-1.9;-.4,.15;.1,2.5;.2,5.0];records=[];
 for k=1:size(seeds,1)
  [bb,~]=grow_corridor(seeds(k,:),obs,r,bounds,.12);records(k,:)=bb; %#ok<AGROW>
- V=[bb(1),bb(3);bb(2),bb(3);bb(2),bb(4);bb(1),bb(4)];patch(ax,V(:,1),V(:,2),[.92,.96,1],'FaceAlpha',.4,'EdgeColor',blue,'LineWidth',1.1);
+ V=[bb(1),bb(3);bb(2),bb(3);bb(2),bb(4);bb(1),bb(4)];patch(ax,V(:,1),V(:,2),[.80,.93,.94],'FaceAlpha',.4,'EdgeColor',teal,'LineWidth',1.1);
 end
 plot(ax,seeds(:,1),seeds(:,2),'k--o','MarkerFaceColor','w','LineWidth',1);
 export(f,out,'fig02-06');
@@ -142,7 +143,7 @@ normal=rotation(:,1);tangent=rotation(:,2);assert(abs(polygon_distance(P,Q)-3)<1
 f=figure('Color','w','Position',[50,50,1100,470],'Visible','off');
 for panel=1:2
  ax=axes(f,'Position',[.025+(panel-1)*.5,.07,.45,.90]);hold(ax,'on');axis(ax,'equal');axis(ax,[-4.2,5.2,-4.7,3.8]);axis(ax,'off');
- patch(ax,P(:,1),P(:,2),[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.3);patch(ax,Q(:,1),Q(:,2),[.98,.92,.78],'EdgeColor',gold,'LineWidth',1.3);
+ patch(ax,P(:,1),P(:,2),[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.3);patch(ax,Q(:,1),Q(:,2),[.80,.93,.94],'EdgeColor',gold,'LineWidth',1.3);
  label(ax,mean(P)', 'P',22);label(ax,mean(Q)','Q',22);
  if panel==1
   baseline=-2.4*tangent;arrow(ax,baseline-4*normal,baseline+5*normal,[.25,.25,.25],.9);
@@ -172,13 +173,13 @@ for panel=1:2
  ax=axes(f,'Position',[.025+(panel-1)*.5,.04,.45,.93]);hold(ax,'on');axis(ax,'equal');axis(ax,[-4.1,6,-4.1,5.6]);axis(ax,'off');
  c=[4;2];n=c/norm(c);tangent=[-n(2);n(1)];foot=(26.25/2)/dot(c,c)*c;
  if panel==1
-  patch(ax,[-4,6,6,-4],[-3.5,-3.5,5.1,5.1],[.94,.96,.98],'EdgeColor','none');
+  patch(ax,[-4,6,6,-4],[-3.5,-3.5,5.1,5.1],[.87,.95,.96],'EdgeColor','none');
   aa=linspace(0,2*pi,241);patch(ax,2.5*cos(aa),2.5*sin(aa),'w','EdgeColor','none');
  else
-  V=[foot-7*tangent,foot+7*tangent,foot+7*tangent+9*n,foot-7*tangent+9*n];patch(ax,V(1,:),V(2,:),[.94,.96,.98],'EdgeColor','none');
+  V=[foot-7*tangent,foot+7*tangent,foot+7*tangent+9*n,foot-7*tangent+9*n];patch(ax,V(1,:),V(2,:),[.87,.95,.96],'EdgeColor','none');
   line2(ax,foot-7*tangent,foot+7*tangent,blue,1.3,'-');
  end
- aa=linspace(0,2*pi,241);patch(ax,2*cos(aa),2*sin(aa),[.66,.66,.66],'EdgeColor',[.25,.25,.25]);circle(ax,[0;0],2.5,[.3,.3,.3],1,'--');circle(ax,c,.5,blue,1.1,'-');
+ aa=linspace(0,2*pi,241);patch(ax,2*cos(aa),2*sin(aa),[.66,.66,.66],'EdgeColor',[.25,.25,.25]);circle(ax,[0;0],2.5,teal,1,'--');circle(ax,c,.5,blue,1.1,'-');
  plot(ax,[0,c(1)],[0,c(2)],'k.','MarkerSize',14);label(ax,[-.25;-.35],'o',21);label(ax,c+[.2;.85],'\it c',22);line2(ax,c+[.08;1.10],c+[.32;1.10],[.2,.2,.2],.8,'-');
  line2(ax,[0;0],c,[.3,.3,.3],.85,'-.');arrow(ax,[0;0],2*n,[.3,.3,.3],.8);
  if panel==2
@@ -193,7 +194,7 @@ export(f,out,'fig02-07');
 tangent=rotation(:,2);
 [f,ax]=canvas(1050,520,[-4.3,5.3,-3.2,3.8]);
 patch(ax,P(:,1),P(:,2),[.86,.91,.97],'EdgeColor',blue,'LineWidth',1.2);
-patch(ax,Q(:,1),Q(:,2),[.98,.92,.78],'EdgeColor',gold,'LineWidth',1.2);
+patch(ax,Q(:,1),Q(:,2),[.80,.93,.94],'EdgeColor',gold,'LineWidth',1.2);
 line2(ax,P(4,:)',P(5,:)',blue,3,'-');line2(ax,Q(7,:)',Q(1,:)',gold,3,'-');
 line2(ax,.5*normal-2*tangent,.5*normal+2.6*tangent,[.35,.35,.35],1,'--');
 arrow(ax,-normal,0*normal,blue,1.3);arrow(ax,2*normal,normal,gold,1.3);

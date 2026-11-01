@@ -9,9 +9,10 @@ import argparse,os
 parser=argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--root',type=Path,default=Path(__file__).resolve().parents[1])
 parser.add_argument('--font',type=Path,default=Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts/times.ttf')
+parser.add_argument('--italic-font',type=Path,default=None)
 args=parser.parse_args();C=args.root.resolve();T=C/'.figure-layout';T.mkdir(exist_ok=True)
 import pymupdf as f
-fontfile=str(args.font);font=f.Font(fontfile=fontfile);PRINT_WIDTH=120*72/25.4;PRINT_HEIGHT=191*72/25.4;SIZE=9.5
+fontfile=str(args.font);font=f.Font(fontfile=fontfile);italicfile=str(args.italic_font or args.font.with_name('timesi.ttf'));italic=f.Font(fontfile=italicfile);PRINT_WIDTH=120*72/25.4;PRINT_HEIGHT=191*72/25.4;SIZE=9.5
 active={};refresh=set();previous={}
 manifest=T/'hashes.json'
 if manifest.exists():previous=json.loads(manifest.read_text())
@@ -58,12 +59,14 @@ for file,(printW,printH) in active.items():
  scale=initial_scale
  if printH:scale=min(scale,(printH-fixed)/source_height)
  assert scale>0
- height=source_height*scale+fixed;width=W*scale;new=f.open();page=new.new_page(width=width,height=height);page.insert_font(fontname='BookSubcaption',fontfile=fontfile);cursor=2
+ height=source_height*scale+fixed;width=W*scale;new=f.open();page=new.new_page(width=width,height=height);page.insert_font(fontname='BookSubcaption',fontfile=fontfile);page.insert_font(fontname='BookTime',fontfile=italicfile);cursor=2
  for row_index,(h,panels) in enumerate(plans):
   baseline=cursor+h*scale+5+font.ascender*SIZE
   for clip,s,cx in panels:
    dest=f.Rect(clip.x0*scale,cursor+(h-clip.height)*scale,clip.x1*scale,cursor+h*scale);page.show_pdf_page(dest,doc,0,clip=clip,keep_proportion=False)
-   tw=font.text_length(s,fontsize=SIZE);page.insert_text((cx*scale-tw/2,baseline),s,fontname='BookSubcaption',fontsize=SIZE)
+   parts=re.split(r'(?<= )([tT])(?=\s*=)',s);runs=[(z,'BookTime' if i%2 else 'BookSubcaption',italic if i%2 else font) for i,z in enumerate(parts)];tw=sum(ft.text_length(z,fontsize=SIZE) for z,nm,ft in runs);x=cx*scale-tw/2
+   for z,nm,ft in runs:
+    page.insert_text((x,baseline),z,fontname=nm,fontsize=SIZE);x+=ft.text_length(z,fontsize=SIZE)
    audit.append({'file':file.name,'text':s,'printed_font_pt':SIZE,'panel_gap_pt':5,'baseline':baseline,'center_x':cx*scale})
   cursor=baseline-font.descender*SIZE+(10 if row_index+1<len(plans) or footer else 1)
  if footer:

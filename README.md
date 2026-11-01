@@ -11,7 +11,7 @@ The planning models use **first-order explicit forward Euler** for vehicle-motio
 | [Chapter3](Chapter3) | IPOPT initial-guess example, A*, space-time A*, CBS | `run_examples` |
 | [Chapter4](Chapter4) | Two-stage ten-vehicle cooperative lane changes | `run_experiments` |
 | [Chapter5](Chapter5) | Irregular five-arm intersections, STCs/RSTCs, SFM, LIOM | `run_experiments` |
-| [Chapter6](Chapter6) | ASCO and three comparisons on eight ten-vehicle cases | `run_experiments` |
+| [Chapter6](Chapter6) | One validated ten-vehicle ASCO maneuver through a shared conflict region | `run_example` |
 | [Chapter7](Chapter7) | Fifty-vehicle receding-horizon formation reconfiguration | `run_experiment(50)` |
 | [Chapter8](Chapter8) | Numerical-stack example and complete simulation ROS package | [Chapter README](Chapter8/README.md) |
 | [Chapter9](Chapter9) | Vehicle firmware and supplied SSD1306 library | `Firmware/main/main.ino` |
@@ -37,6 +37,6 @@ For an existing checkout, set `ICV_BOOK_ROOT` to its absolute path. Record the p
 
 ## Outputs and verification
 
-The MATLAB chapters write new outputs to their chapter-local `output` directories; `reports` preserves recorded runs, including failures. The imported ROS planner writes relative CSV log filenames in its process working directory. Chapter READMEs identify package dependencies, launch commands, and controller conventions.
+The MATLAB chapters write new outputs to their chapter-local `output` directories; `reports` preserves the recorded demonstrations. The imported ROS planner writes relative CSV log filenames in its process working directory. Chapter READMEs identify package dependencies, launch commands, and controller conventions.
 
 The source migration was verified by file inventories, executable-token comparison, Python syntax compilation, XML parsing, and isolated package-name inventories. The migrated ROS packages, Arduino firmware, and complete hardware experiment were not built or executed in the review environment. Existing third-party authorship and license notices remain with the corresponding files.

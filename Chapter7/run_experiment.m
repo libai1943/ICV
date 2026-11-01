@@ -6,8 +6,9 @@ task.geometry=struct('LW',2.8,'LF',.96,'LR',.929,'LB',1.942);g=task.geometry;tas
 task.dt=.5;task.nodes=21;task.commit=10;task.margin=.35;task.maxSpeed=2;task.maxAcceleration=1;task.maxSteering=.6;task.maxSteeringRate=.25;
 task.goal=assigned(:,4:5)';task.initial=[assigned(:,1:2)'-task.offset*[cos(assigned(:,3)');sin(assigned(:,3)')];assigned(:,3)';zeros(2,count)];task.source_case=4;task.scale=.3;task.source_indices=1:count;
 reference=repmat(reshape([task.initial;zeros(2,count)],7,1,count),1,task.nodes,1);trajectory=zeros(7,0,count);history=struct([]);timer=tic;complete=false;
+initialAudit=validate_motion(task,reference);assert(initialAudit.passed,'Book:InitialFormation','The stationary initial formation is not collision-free.');
 firstWindow=1;checkpoint=fullfile(out,sprintf('checkpoint_%02d.mat',count));
-if isfile(checkpoint),saved=load(checkpoint);reference=saved.reference;trajectory=saved.trajectory;history=saved.history;firstWindow=saved.window+1;end
+if isfile(checkpoint),saved=load(checkpoint);assert(isequaln(saved.task,task),'Book:CheckpointMismatch','Checkpoint task or numerical settings differ.');reference=saved.reference;trajectory=saved.trajectory;history=saved.history;firstWindow=saved.window+1;end
 for window=firstWindow:60
  for local=1:2
   final=max(vecnorm(squeeze(reference(1:2,end,:))+task.offset*[cos(squeeze(reference(3,end,:)))';sin(squeeze(reference(3,end,:)))']-task.goal))<.5;

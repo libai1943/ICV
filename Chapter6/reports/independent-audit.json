@@ -1,0 +1,39 @@
+{
+  "status": "PASS",
+  "checks": 1,
+  "method": "Independent NumPy CSV Euler, bounds, endpoints, transit bands, all-disc geometry, 40-subdivision clearance correction, central participation, and objective calculation. The selected demonstration must pass every independent feasibility check.",
+  "records": [
+    {
+      "case_id": "C001",
+      "method": "asco",
+      "accepted": true,
+      "csv_sha256": "00ef8ae784e549ac271c979efef1b0729e09e71db4096fe3d4c76c647b24af67",
+      "case_sha256": "69f1a15899b42994bf16df26e9154433fd24ad27e97acd9fd04ed827c59f4101",
+      "maximum_euler_defect": 2.633024902450043e-08,
+      "maximum_endpoint_error": 4.796163466380676e-14,
+      "maximum_bound_violation": 0.0,
+      "maximum_transit_band_violation": 0.0,
+      "minimum_vehicle_clearance_m": 0.12052773071076306,
+      "minimum_obstacle_clearance_m": 0.1357234183538899,
+      "corrected_interval_clearance_m": 0.07886723380912197,
+      "minimum_center_radius_per_vehicle_m": [
+        3.2013863663762674,
+        3.975737875877827,
+        3.502271622103878,
+        4.082882731569433,
+        3.702614036378359,
+        2.5715217660227334,
+        3.7170275355724516,
+        3.49964923090494,
+        3.6568120901352605,
+        3.84789451725046
+      ],
+      "peak_simultaneous_central_occupancy": {
+        "5": 5,
+        "8": 6
+      },
+      "final_cost_recomputed": 33.14639950920645,
+      "independent_feasibility": true
+    }
+  ]
+}

@@ -71,7 +71,7 @@ for panel=1:6
   end
   q=book.state(:,k,i);q(1)=q(1)-p.v0*book.time(k);BookDrawVehicle(ax,q,g,colors(i,:),i,11);
  end
- text(ax,.5,-.40,sprintf('(%c) %s, t = %.2f s',96+panel,st,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',14.5);ylabel(ax,'{\it y} (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xl(1)/20)*20:20:floor(xl(2)/20)*20);set(ax,'FontSize',12);
+ text(ax,.5,-.40,sprintf('(%c) %s, {\\it t} = %.2f s',96+panel,st,book.time(k)),'Units','normalized','HorizontalAlignment','center','FontSize',14.5);ylabel(ax,'{\it y} (m)');yticks(ax,[3.75,7.5,11.25]);xticks(ax,ceil(xl(1)/20)*20:20:floor(xl(2)/20)*20);set(ax,'FontSize',12);
 end
 savefigs(f,out,'fig04-05');
 % 4.6: state/control histories including the acceleration derivative.

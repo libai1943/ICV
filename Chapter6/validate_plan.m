@@ -20,5 +20,10 @@ offset=-task.geometry.LR+3*(task.geometry.LW+task.geometry.LF+task.geometry.LR)/
 speedBound=task.maxSpeed*(1+abs(offset)*tan(task.maxSteering)/task.geometry.LW);
 motion=diff(q(1:3,:,:),1,2)/dt;speedBound=max(vecnorm(motion(1:2,:,:))+abs(offset)*abs(motion(3,:,:)),[],'all');bound=min(clearance(:))-speedBound*dt/substeps; % 2*speedBound*half subinterval.
 bounds=max([0;reshape(abs(q(4,:,:))-task.maxSpeed,[],1);reshape(abs(q(5,:,:))-task.maxSteering,[],1);reshape(abs(q(6,:,:))-task.maxAcceleration,[],1);reshape(abs(u(1,:,:))-task.maxJerk,[],1);reshape(abs(u(2,:,:))-task.maxSteeringRate,[],1)]);
-report=struct('minimum_sampled_clearance',min(clearance(:)),'interval_clearance_bound',bound,'maximum_euler_defect',residual,'maximum_interpolation_node_error',drift,'boundary_violation',terminal,'bound_violation',bounds,'passed',bound>=0 && residual<1e-5 && terminal<1e-5 && bounds<1e-6 && drift<.03);
+transitViolation=0;minimumRadius=zeros(1,count);offsetCenter=(task.geometry.LW+task.geometry.LF-task.geometry.LR)/2;
+for car=1:count
+ centers=dense(1:2,:,car)+offsetCenter*[cos(dense(3,:,car));sin(dense(3,:,car))];minimumRadius(car)=min(vecnorm(centers));
+ if isfield(task,'transit_halfwidth'),lateral=task.transit_normals(:,car)'*(q(1:2,:,car)-task.start(1:2,car));transitViolation=max(transitViolation,max(abs(lateral))-task.transit_halfwidth);end
+end
+report=struct('minimum_sampled_clearance',min(clearance(:)),'interval_clearance_bound',bound,'maximum_euler_defect',residual,'maximum_interpolation_node_error',drift,'boundary_violation',terminal,'bound_violation',bounds,'transit_violation',transitViolation,'minimum_center_radius',minimumRadius,'all_vehicles_visit_center',all(minimumRadius<=task.central_region_radius),'passed',transitViolation<1e-6 && all(minimumRadius<=task.central_region_radius) && bound>=0 && residual<1e-5 && terminal<1e-5 && bounds<1e-6 && drift<.03);
 end

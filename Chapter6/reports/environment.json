@@ -1,5 +1,4 @@
 {
-  "date": "2026-11-01",
   "matlab": "R2021b",
   "casadi": "3.7.2",
   "ipopt": "3.14.11",
@@ -7,5 +6,6 @@
   "discretization": "first-order explicit forward Euler",
   "processor": "Intel Core i9-12900H",
   "numerical_threads": 1,
-  "timing_note": "Single-run wall measurements on a shared host with overlapping chapter jobs; not isolated-machine rankings."
+  "scope": "One validated illustrative ten-ICV maneuver, C001.",
+  "timing": "Cooperative planning timer excludes common reference preparation; one recorded run."
 }

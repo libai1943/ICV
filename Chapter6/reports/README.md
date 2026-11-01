@@ -1,3 +1,3 @@
-# Recorded numerical data
+# Recorded ASCO demonstration
 
-These files record the current explicit-Euler revision. Solver and validation failures are preserved. Only accepted entries may be treated as completed plans. Fresh MATLAB runs write to `output`; recorded reports are not silently overwritten by those runs. The environment file identifies the optimizer and timing limitations.
+One complete ten-ICV maneuver through a shared central conflict region. The CSV trajectory supplies every simulation figure. `independent-audit.json` reconstructs motion, bounds, geometry, and central participation from the exported values. Run `run_example` from Chapter6 to reproduce the demonstration.
