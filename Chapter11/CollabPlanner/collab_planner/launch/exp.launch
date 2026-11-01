@@ -1,0 +1,44 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="server" default="10.1.1.198"/>
+
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find collab_planner)/config/exp.rviz"/>
+  
+  <include file="$(find vrpn_client_ros)/launch/sample.launch">
+    <arg name="server" value="$(arg server)"/>
+  </include>
+  
+  <node pkg="nokov_localization" type="nokov_localization.py" name="nokov" />
+  <node pkg="chassis" type="chassis_node" name="chassis" output="screen" />
+
+  <node pkg="collab_planner" type="collab_planner_node" name="collab_planner_node" output="screen">
+    <rosparam command="load" file="$(find collab_planner)/config/collab_traj_planner.yaml" ns="collab_planner"/>
+    <rosparam command="load" file="$(find collab_planner)/config/car_positions.yaml" ns="collab_planner"/>
+  </node>
+
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_0" output="screen">
+    <param name="target" value="0" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_1" output="screen">
+    <param name="target" value="1" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_2" output="screen">
+    <param name="target" value="2" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_3" output="screen">
+    <param name="target" value="3" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_4" output="screen">
+    <param name="target" value="4" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_5" output="screen">
+    <param name="target" value="5" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_6" output="screen">
+    <param name="target" value="6" />
+  </node>
+  <node pkg="pure_pursuit" type="pure_pursuit_node" name="controller_7" output="screen">
+    <param name="target" value="7" />
+  </node>
+
+</launch>

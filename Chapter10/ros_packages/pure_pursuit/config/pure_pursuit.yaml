@@ -1,0 +1,15 @@
+lfw : 0.0
+lrv : 0.0
+wheel_base : 0.143
+approaching_tolerance : 0.04
+final_approaching_tolerance : 0.02
+control_dt : 0.01
+longitude_kp : 1.8
+longitude_ki : 0.0
+lookahead_distance_min : 0.10
+lookahead_distance_max : 0.15
+lookahead_distance_ratio : 0.8
+v_lookahead_lb : 0.125
+v_lookahead_ub : 0.25
+v_min : 0.0
+v_max : 0.25

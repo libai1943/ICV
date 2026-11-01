@@ -1,18 +1,112 @@
-# Chapter 8: Numerical-Stack Installation Check
+# Chapter 8: numerical-stack example and cooperative-planning software
 
-`casadi_example.cc` is the small standalone C++ program printed in the illustrated installation chapter. It explicitly selects IPOPT with MA57. The analytic global solution is `(x,y,z)=(0,1,0)` with zero cost and zero equality residual.
+This chapter contains the standalone CasADi program used in the book and the complete simulation ROS package.
 
-The chapter's documented Linux baseline is Ubuntu 20.04.6, ROS Noetic, ThirdParty-HSL 2.2.5, IPOPT 3.14.17, and CasADi 3.7.0. This baseline reproduces the supplied ROS 1 application; its platform-support status and a complete installation walkthrough are explained in the book. The MATLAB experiments use the separately recorded Windows/CasADi environment.
+| Path | Purpose |
+|---|---|
+| `casadi_example.cc` | Primary book example, including solution, cost, residual, and solver status |
+| `upstream_casadi_example/` | Original three-variable example with English comments and its CMake file |
+| `CollabPlanner/` | Simulation package named `collab_planner` |
+| `Chapter8-source.zip` | Chapter-local source and documentation archive |
 
-After installing compatible headers and shared libraries:
+Both C++ examples and the imported planner select IPOPT with MA57. The analytic solution of the example is `(x,y,z)=(0,1,0)`, with zero objective value and zero equality residual.
+
+## Recorded environment
+
+The chapter's Linux baseline is Ubuntu 20.04.6, ROS Noetic, ThirdParty-HSL 2.2.5, IPOPT 3.14.17, and CasADi 3.7.0. The book provides the installation walkthrough and platform-support context. The MATLAB experiments use the separately recorded environment described in the repository's main README.
+
+The commands below assume ROS, compatible CasADi headers/shared libraries, IPOPT, and HSL with MA57 have been installed. HSL binaries are obtained and installed separately. When HSL uses a nondefault library filename, set the solver's `ipopt.hsllib` option to the installed library's absolute path.
+
+## Obtain the central source
+
+Clone the repository outside every catkin `src` directory:
 
 ```bash
-g++ -std=c++11 casadi_example.cc -I/usr/local/include \
-  -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lcasadi \
-  -o casadi_example
-./casadi_example
+mkdir -p "$HOME/src"
+git clone https://github.com/libai1943/ICV.git "$HOME/src/ICV"
+export ICV_BOOK_ROOT="$HOME/src/ICV"
+git -C "$ICV_BOOK_ROOT" rev-parse HEAD
 ```
 
-Check the startup banner for MA57, the termination status, the solution, and the residual. If runtime HSL loading requires a nondefault name, set `ipopt.hsllib` to the actual installed library path. Do not substitute another linear solver. HSL binaries are not included.
+For an existing checkout, set `ICV_BOOK_ROOT` to that checkout's absolute path. Record its commit with the experiment.
 
-The installation screenshots were supplied by the student contributors and integrated into the manuscript. No Ubuntu installation, virtual machine, or ROS deployment was performed on the author's computer during the book revision. The analytic test is independently checkable; this repository does not claim a newly executed Linux installation.
+## Build the primary book example
+
+```bash
+export ICV_BOOK_ROOT="$HOME/src/ICV"
+mkdir -p "$ICV_BOOK_ROOT/Chapter8/build"
+g++ -std=c++11 "$ICV_BOOK_ROOT/Chapter8/casadi_example.cc" \
+  -I/usr/local/include -L/usr/local/lib -Wl,-rpath,/usr/local/lib \
+  -lcasadi -o "$ICV_BOOK_ROOT/Chapter8/build/casadi_example"
+"$ICV_BOOK_ROOT/Chapter8/build/casadi_example"
+```
+
+Confirm MA57 in the solver startup output, then inspect the termination status, solution, objective, and equality residual. The expected numerical solution approaches the analytic values given above within the selected tolerance.
+
+The imported upstream variant can be built separately:
+
+```bash
+g++ -std=c++11 \
+  "$ICV_BOOK_ROOT/Chapter8/upstream_casadi_example/casadi_example.cc" \
+  -I/usr/local/include -L/usr/local/lib -Wl,-rpath,/usr/local/lib \
+  -lcasadi -o "$ICV_BOOK_ROOT/Chapter8/build/upstream_casadi_example"
+"$ICV_BOOK_ROOT/Chapter8/build/upstream_casadi_example"
+```
+
+Its source, initial authorship, and exact upstream commit are documented in [upstream_casadi_example/README.md](upstream_casadi_example/README.md).
+
+## Build the simulation ROS workspace
+
+Use a fresh terminal and a workspace containing a single `collab_planner` package. The `ln -sT` command reports an existing destination, so inspect an existing workspace before reusing it.
+
+```bash
+source /opt/ros/noetic/setup.bash
+export ICV_BOOK_ROOT="$HOME/src/ICV"
+mkdir -p "$HOME/collab_ws/src"
+ln -sT "$ICV_BOOK_ROOT/Chapter8/CollabPlanner" \
+  "$HOME/collab_ws/src/collab_planner"
+sudo apt update
+sudo apt install ros-noetic-jsk-rviz-plugins
+cd "$HOME/collab_ws"
+rosdep install --from-paths src --ignore-src -r -y --rosdistro noetic
+catkin_make -DWITH_HSL=ON
+source devel/setup.bash
+```
+
+`CollabPlanner` is itself a ROS package. Chapter 11 has a different package tree and uses its own workspace. The MA57 setting is already present in `trajectory_nlp/collab_traj_nlp.cc`.
+
+## Run the demonstration
+
+Open three terminals. Source the same simulation workspace in each one.
+
+Terminal 1:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/collab_ws/devel/setup.bash"
+roscore
+```
+
+Terminal 2:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/collab_ws/devel/setup.bash"
+rosrun collab_planner keyboard_input
+```
+
+Terminal 3:
+
+```bash
+source /opt/ros/noetic/setup.bash
+source "$HOME/collab_ws/devel/setup.bash"
+roslaunch collab_planner test.launch
+```
+
+Follow the English prompts in the keyboard terminal to select the initial and target formations. Available characters are printed by the program. The planner's CSV log filenames are relative to its process working directory, usually the ROS runtime directory for a standard launch.
+
+## Provenance and verification
+
+[CollabPlanner/README.md](CollabPlanner/README.md) records Yueshuo Sun's initial implementation, the exact imported commit, translated comments, solver configuration, and small build-metadata corrections. Third-party notices remain in their original files.
+
+The migration was inspected statically, including source differences, Python syntax, XML syntax, and isolated ROS package discovery. The C++ examples and ROS packages were not compiled or launched in the review environment; no operating-system installation or hardware execution was performed there.
